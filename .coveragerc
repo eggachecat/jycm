@@ -1,0 +1,7 @@
+[report]
+omit =
+    */python?.?/*
+    */site-packages/nose/*
+    *__init__*
+    */operator.py
+    */km_matcher.py
