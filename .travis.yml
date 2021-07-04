@@ -1,0 +1,20 @@
+language: python
+sudo: false
+python:
+  - "3.7"
+install:
+  - pip install -r requirements-dev.txt
+  - pip install pytest
+  - pip install pytest-cov
+  - pip install coveralls
+script:
+  - pytest --cov=jycm
+after_success:
+  - coveralls
+deploy:
+  provider: pypi
+  user: "__token__"
+  password: $PYPI_TOKEN
+  on:
+    tags: true
+    branch: master
