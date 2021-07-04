@@ -2,6 +2,8 @@ import logging
 import re
 from typing import TYPE_CHECKING, Tuple, Type
 
+from jycm.common import PLACE_HOLDER_NON_EXIST
+
 if TYPE_CHECKING:
     from jycm.jycm import TreeLevel, YouchamaJsonDiffer
 
@@ -91,15 +93,28 @@ class ExpectExistOperator(BaseOperator):
     __event__ = "operator:expectExist"
 
     def diff(self, level: 'TreeLevel', instance: 'YouchamaJsonDiffer', drill: bool) -> Tuple[bool, float]:
-        # print("ExpectExistOperator", level.to_dict())
+
+        info = {
+            "pass": True,
+            "path_regex": self.path_regex
+        }
+
+        if level.left == PLACE_HOLDER_NON_EXIST:
+            info["pass"] = False
+            info["left_non_exist"] = True
+
+        if level.right == PLACE_HOLDER_NON_EXIST:
+            info["pass"] = False
+            info["right_non_exist"] = True
+
         # 只要到这里就ok
         if not drill:
-            if level.left != level.right:
-                instance.report(self.__event__, level, {"pass": False, "path_regex": self.path_regex})
-            else:
-                instance.report(self.__event__, level, {"pass": True, "path_regex": self.path_regex})
+            instance.report(self.__event__, level, info)
 
-        return True, 1
+        if info["pass"]:
+            return True, 1
+
+        return True, 0
 
 
 @register_operator

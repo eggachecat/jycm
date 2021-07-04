@@ -535,3 +535,60 @@ def test_different_types_list():
     ]))
 
     ycm.diff()
+
+
+def test_compare_list_with_order_fast():
+    left = {
+        "list": [
+            {"a": [1, 1, 1], "b": "111111", "c": {"c-1": 1, "c-2": 1}},
+            {"a": [2, 2, 2], "b": "222222", "c": {"c-1": 2, "c-2": 2}},
+            {"a": [3, 3, 3], "b": "333333", "c": {"c-1": 3, "c-2": 3}},
+        ]
+    }
+
+    right = {
+        "list": [
+            {"a": [0, 0, 0], "b": "111111", "c": {"c-1": 0, "c-2": 0}},
+            {"a": [1, 1, 1], "b": "111111", "c": {"c-1": 1, "c-2": 1}},
+            {"a": [3, 3, 3], "b": "444444", "c": {"c-1": 3, "c-2": 3}},
+            {"a": [4, 4, 4], "b": "444444", "c": {"c-1": 4, "c-2": 4}},
+        ]
+    }
+
+    ycm = YouchamaJsonDiffer(left, right, fast_mode=True)
+    ycm.diff()
+
+    expected = {
+        'list:add': [
+            {'left': '__NON_EXIST__', 'right': {'a': [4, 4, 4], 'b': '444444', 'c': {'c-1': 4, 'c-2': 4}},
+             'left_path': '',
+             'right_path': 'list->[3]'}
+        ],
+        'value_changes': [
+            {'left': 1, 'right': 0, 'left_path': 'list->[0]->a->[0]', 'right_path': 'list->[0]->a->[0]', 'old': 1,
+             'new': 0},
+            {'left': 1, 'right': 0, 'left_path': 'list->[0]->a->[1]', 'right_path': 'list->[0]->a->[1]', 'old': 1,
+             'new': 0},
+            {'left': 1, 'right': 0, 'left_path': 'list->[0]->a->[2]', 'right_path': 'list->[0]->a->[2]', 'old': 1,
+             'new': 0},
+            {'left': 1, 'right': 0, 'left_path': 'list->[0]->c->c-1', 'right_path': 'list->[0]->c->c-1', 'old': 1,
+             'new': 0},
+            {'left': 1, 'right': 0, 'left_path': 'list->[0]->c->c-2', 'right_path': 'list->[0]->c->c-2', 'old': 1,
+             'new': 0},
+            {'left': 2, 'right': 1, 'left_path': 'list->[1]->a->[0]', 'right_path': 'list->[1]->a->[0]', 'old': 2,
+             'new': 1},
+            {'left': 2, 'right': 1, 'left_path': 'list->[1]->a->[1]', 'right_path': 'list->[1]->a->[1]', 'old': 2,
+             'new': 1},
+            {'left': 2, 'right': 1, 'left_path': 'list->[1]->a->[2]', 'right_path': 'list->[1]->a->[2]', 'old': 2,
+             'new': 1},
+            {'left': '222222', 'right': '111111', 'left_path': 'list->[1]->b', 'right_path': 'list->[1]->b',
+                         'old': '222222', 'new': '111111'},
+            {'left': 2, 'right': 1, 'left_path': 'list->[1]->c->c-1', 'right_path': 'list->[1]->c->c-1', 'old': 2,
+             'new': 1},
+            {'left': 2, 'right': 1, 'left_path': 'list->[1]->c->c-2', 'right_path': 'list->[1]->c->c-2', 'old': 2,
+             'new': 1}, {'left': '333333', 'right': '444444', 'left_path': 'list->[2]->b', 'right_path': 'list->[2]->b',
+                         'old': '333333', 'new': '444444'}
+        ]
+    }
+
+    assert expected == ycm.to_dict(no_pairs=True)

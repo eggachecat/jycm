@@ -44,10 +44,14 @@ def test_operator_expect_exist():
     left = {
         "expect_exist_pos": 1,
         "expect_exist_neg": 999,
+        "key:removed": "23456",
+        "key:changed": "abc"
     }
 
     right = {
         "expect_exist_pos": "",
+        "key:changed": "xyz",
+        "key:added": "ooooooo"
     }
 
     ycm = YouchamaJsonDiffer(left, right, custom_operators=[
@@ -56,19 +60,40 @@ def test_operator_expect_exist():
     ])
     ycm.diff()
     expected = {
+        'dict:add': [
+            {'left': '__NON_EXIST__',
+             'left_path': '',
+             'right': 'ooooooo',
+             'right_path': 'key:added'}
+        ],
         'dict:remove': [
-            {'left': 999,
-             'left_path': 'expect_exist_neg',
+            {'left': '23456',
+             'left_path': 'key:removed',
              'right': '__NON_EXIST__',
              'right_path': ''}
         ],
         'operator:expectExist': [
+            {'left': 999,
+             'left_path': 'expect_exist_neg',
+             'pass': False,
+             'path_regex': 'expect_exist_neg',
+             'right': '__NON_EXIST__',
+             'right_non_exist': True,
+             'right_path': ''},
             {'left': 1,
              'left_path': 'expect_exist_pos',
-             'pass': False,
+             'pass': True,
              'path_regex': 'expect_exist_pos',
              'right': '',
              'right_path': 'expect_exist_pos'}
+        ],
+        'value_changes': [
+            {'left': 'abc',
+             'left_path': 'key:changed',
+             'new': 'xyz',
+             'old': 'abc',
+             'right': 'xyz',
+             'right_path': 'key:changed'}
         ]
     }
     assert ycm.to_dict(no_pairs=True) == expected

@@ -1,5 +1,7 @@
 from typing import Callable, Dict, List, Tuple, Union
 
+from jycm.common import EVENT_PAIR, PLACE_HOLDER_NON_EXIST, EVENT_LIST_REMOVE, EVENT_LIST_ADD, EVENT_DICT_REMOVE, \
+    EVENT_DICT_ADD
 from jycm.helper import make_json_path_key
 from jycm.km_matcher import KMMatcher
 from jycm.operator import BaseOperator
@@ -14,9 +16,13 @@ class TreeLevel:
         left_path: left json path
         right_path: right json path
         up: the parent TreeLevel
+        diff: a simple way to inject custom operators ; default None
     """
 
-    def __init__(self, left, right, left_path: List, right_path: List, up: Union['TreeLevel', None]):
+    def __init__(self, left, right, left_path: List, right_path: List, up: Union['TreeLevel', None],
+                 diff: Union[
+                     Callable[['TreeLevel', bool], Tuple[bool, float]], None
+                 ] = None):
         """Init method for TreeLevel
 
         """
@@ -27,6 +33,11 @@ class TreeLevel:
         self.right_path: List = right_path
 
         self.up: TreeLevel = up
+
+        if diff is not None:
+            self.diff = lambda _drill: diff(self, _drill)
+        else:
+            self.diff = None
 
     def get_type(self) -> type:
         """Get the type of this level
@@ -116,15 +127,6 @@ class Record:
             "right_path": make_json_path_key(self.level.right_path),
             **self.info
         }
-
-
-EVENT_PAIR = "pairs"
-EVENT_DICT_REMOVE = "dict:remove"
-EVENT_DICT_ADD = "dict:add"
-EVENT_LIST_REMOVE = "list:remove"
-EVENT_LIST_ADD = "list:add"
-
-PLACE_HOLDER_NON_EXIST = "__NON_EXIST__"
 
 
 def gather_serial_pair(target_index, indices, list_, container):
@@ -699,6 +701,30 @@ class YouchamaJsonDiffer:
         if self.debug:
             print(f"[compare_dict>>>] {level}")
 
+        ref = self
+
+        def __dict_remove_diff(_level: 'TreeLevel', _drill: bool):
+            if not _drill:
+                ref.report(EVENT_DICT_REMOVE, TreeLevel(
+                    left=_level.left,
+                    right=PLACE_HOLDER_NON_EXIST,
+                    left_path=[*_level.left_path],
+                    right_path=[],
+                    up=level
+                ))
+            return True, 0
+
+        def __dict_add_diff(_level: 'TreeLevel', _drill: bool):
+            if not _drill:
+                ref.report(EVENT_DICT_ADD, TreeLevel(
+                    left=PLACE_HOLDER_NON_EXIST,
+                    right=_level.right,
+                    left_path=[],
+                    right_path=[*_level.right_path],
+                    up=level
+                ))
+            return True, 0
+
         for k in all_keys:
             if k in level.right and k in level.left:
                 _score = self.diff_level(TreeLevel(
@@ -718,25 +744,28 @@ class YouchamaJsonDiffer:
                     self.report_pair(level)
                 continue
 
-            if k in level.left and not drill:
-                self.report(EVENT_DICT_REMOVE, TreeLevel(
+            if k in level.left:
+                _score = self.diff_level(TreeLevel(
                     left=level.left[k],
                     right=PLACE_HOLDER_NON_EXIST,
                     left_path=[*level.left_path, k],
                     right_path=[],
-                    up=level
-                ))
-                continue
+                    up=level,
+                    diff=__dict_remove_diff
+                ), drill=drill)
+                score += _score
 
-            if k in level.right and not drill:
-                self.report(EVENT_DICT_ADD, TreeLevel(
+            if k in level.right:
+                _score = self.diff_level(TreeLevel(
                     left=PLACE_HOLDER_NON_EXIST,
                     right=level.right[k],
                     left_path=[],
                     right_path=[*level.right_path, k],
-                    up=level
-                ))
-                continue
+                    up=level,
+                    diff=__dict_add_diff
+                ), drill=drill)
+                score += _score
+
         if len(all_keys) == 0:
             return 1
         return score / len(all_keys)
@@ -799,6 +828,11 @@ class YouchamaJsonDiffer:
 
         if skip:
             return score
+
+        if level.diff is not None:
+            skip, score = level.diff(drill)
+            if skip:
+                return score
 
         try:
             level_type = level.get_type()
