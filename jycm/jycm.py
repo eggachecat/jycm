@@ -20,9 +20,7 @@ class TreeLevel:
     """
 
     def __init__(self, left, right, left_path: List, right_path: List, up: Union['TreeLevel', None],
-                 diff: Union[
-                     Callable[['TreeLevel', bool], Tuple[bool, float]], None
-                 ] = None):
+                 diff: Union[Callable[['TreeLevel', bool], Tuple[bool, float]], None] = None):
         """Init method for TreeLevel
 
         """
@@ -71,7 +69,9 @@ class TreeLevel:
             The left path of this level (matching will be concerned on left mainly)
 
         """
-        return make_json_path_key(self.left_path)
+        if self.left != PLACE_HOLDER_NON_EXIST:
+            return make_json_path_key(self.left_path)
+        return make_json_path_key(self.right_path)
 
     def get_key(self):
         """ Get the key of this level
@@ -754,6 +754,7 @@ class YouchamaJsonDiffer:
                     diff=__dict_remove_diff
                 ), drill=drill)
                 score += _score
+                continue
 
             if k in level.right:
                 _score = self.diff_level(TreeLevel(
@@ -765,6 +766,7 @@ class YouchamaJsonDiffer:
                     diff=__dict_add_diff
                 ), drill=drill)
                 score += _score
+                continue
 
         if len(all_keys) == 0:
             return 1

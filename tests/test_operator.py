@@ -2,7 +2,7 @@ import math
 from typing import Tuple
 
 from jycm.jycm import TreeLevel, YouchamaJsonDiffer
-from jycm.operator import BaseOperator, ExpectChangeOperator, ExpectExistOperator, FloatInRangeOperator
+from jycm.operator import BaseOperator, ExpectChangeOperator, ExpectExistOperator, FloatInRangeOperator, IgnoreOperator
 
 
 def test_operator_expect_change():
@@ -45,18 +45,23 @@ def test_operator_expect_exist():
         "expect_exist_pos": 1,
         "expect_exist_neg": 999,
         "key:removed": "23456",
-        "key:changed": "abc"
+        "key:changed": "abc",
+        "ignore_me_remove": 1,
+        "ignore_me_change": 1
     }
 
     right = {
         "expect_exist_pos": "",
         "key:changed": "xyz",
-        "key:added": "ooooooo"
+        "key:added": "ooooooo",
+        "ignore_me_add": 1,
+        "ignore_me_change": 2
     }
 
     ycm = YouchamaJsonDiffer(left, right, custom_operators=[
         ExpectExistOperator("expect_exist_pos"),
-        ExpectExistOperator("expect_exist_neg")
+        ExpectExistOperator("expect_exist_neg"),
+        IgnoreOperator("ignore_me")
     ])
     ycm.diff()
     expected = {
@@ -69,6 +74,26 @@ def test_operator_expect_exist():
         'dict:remove': [
             {'left': '23456',
              'left_path': 'key:removed',
+             'right': '__NON_EXIST__',
+             'right_path': ''}
+        ],
+        'ignore': [
+            {'left': '__NON_EXIST__',
+             'left_path': '',
+             'pass': True,
+             'path_regex': 'ignore_me',
+             'right': 1,
+             'right_path': 'ignore_me_add'},
+            {'left': 1,
+             'left_path': 'ignore_me_change',
+             'pass': True,
+             'path_regex': 'ignore_me',
+             'right': 2,
+             'right_path': 'ignore_me_change'},
+            {'left': 1,
+             'left_path': 'ignore_me_remove',
+             'pass': True,
+             'path_regex': 'ignore_me',
              'right': '__NON_EXIST__',
              'right_path': ''}
         ],

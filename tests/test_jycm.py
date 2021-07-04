@@ -582,7 +582,7 @@ def test_compare_list_with_order_fast():
             {'left': 2, 'right': 1, 'left_path': 'list->[1]->a->[2]', 'right_path': 'list->[1]->a->[2]', 'old': 2,
              'new': 1},
             {'left': '222222', 'right': '111111', 'left_path': 'list->[1]->b', 'right_path': 'list->[1]->b',
-                         'old': '222222', 'new': '111111'},
+             'old': '222222', 'new': '111111'},
             {'left': 2, 'right': 1, 'left_path': 'list->[1]->c->c-1', 'right_path': 'list->[1]->c->c-1', 'old': 2,
              'new': 1},
             {'left': 2, 'right': 1, 'left_path': 'list->[1]->c->c-2', 'right_path': 'list->[1]->c->c-2', 'old': 2,
