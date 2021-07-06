@@ -209,7 +209,7 @@ of json path regax as parameters. Here's the example:
     }
     assert ycm.to_dict(no_pairs=True) == expected
 
-Abd here's the graph:
+And here's the graph:
 
 .. image:: images/examples/ignore_order.png
     :align: center
@@ -221,13 +221,58 @@ There's some operators implemented in JYCM out of the box.
 
 IgnoreOperator
 ~~~~~~~~~~~~~~
+**IgnoreOperator** is for ignoring all the changes. Instead, a "ignore" event is reported.
+
+::
+
+    left = {
+        "ignore_me_remove": 1,
+        "ignore_me_change": 1
+    }
+
+    right = {
+        "ignore_me_add": 1,
+        "ignore_me_change": 2
+    }
+
+    ycm = YouchamaJsonDiffer(left, right, custom_operators=[
+        IgnoreOperator("ignore_me")
+    ])
+    ycm.diff()
+    expected = {
+        'ignore': [
+            {'left': '__NON_EXIST__',
+             'right': 1,
+             'left_path': '',
+             'right_path': 'ignore_me_add',
+             'path_regex': 'ignore_me',
+             'pass': True},
+            {'left': 1,
+             'right': 2,
+             'left_path':
+             'ignore_me_change',
+             'right_path': 'ignore_me_change',
+             'path_regex': 'ignore_me',
+             'pass': True},
+            {'left': 1,
+             'right': '__NON_EXIST__',
+             'left_path': 'ignore_me_remove',
+             'right_path': '',
+             'path_regex': 'ignore_me',
+             'pass': True}
+        ]
+    }
+    assert ycm.to_dict(no_pairs=True) == expected
+
+And here's the graph:
+
+.. image:: images/examples/ignore.png
+    :align: center
 
 
 ExpectExistOperator
 ~~~~~~~~~~~~~~~~~~~
 
-FloatInRangeOperator
-~~~~~~~~~~~~~~~~~~~~
 
 
 

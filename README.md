@@ -116,7 +116,6 @@ assert ycm.to_dict(no_pairs=True) == expected
 ![default_behaviour](docs/source/images/examples/default_behaviour.png)
 
 ## Ignore Order
-![ignore_order](docs/source/images/examples/ignore_order.png)
 ### Code
 ```python
 from jycm.helper import make_ignore_order_func
@@ -160,6 +159,8 @@ expected = {
 }
 assert ycm.to_dict(no_pairs=True) == expected
 ```
+### Graph
+![ignore_order](docs/source/images/examples/ignore_order.png)
 
 
 
