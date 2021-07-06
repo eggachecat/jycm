@@ -19,7 +19,7 @@ JYCM = Json You-Cha-Ma (「is there a difference」in Chinese)
 # Install
 > pip install jycm
 
-# [Document](https://jycm.readthedocs.io)
+# [Document](https://jycm.readthedocs.io/en/latest/index.html)
 
 # Show cases
 
