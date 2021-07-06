@@ -8,14 +8,26 @@ def test_only_primitive():
         "a": 1,
         "b": 2,
         "d": "12345",
-        "f": False
+        "f": False,
+        "e": [
+            {"x": 1, "y": 1},
+            {"x": 2, "y": 2},
+            {"x": 3, "y": 3},
+            {"x": 4, "y": 4},
+        ]
     }
 
     right = {
         "a": 1,
         "b": 3,
         "c": 4,
-        "f": True
+        "f": True,
+        "e": [
+            {"x": 0, "y": 1},
+            {"x": 2, "y": 2},
+            {"x": 3, "y": 3},
+            {"x": 5, "y": 5},
+        ]
     }
 
     ycm = YouchamaJsonDiffer(left, right)
@@ -32,7 +44,20 @@ def test_only_primitive():
             {'left': '12345',
              'left_path': 'd',
              'right': '__NON_EXIST__',
-             'right_path': ''}],
+             'right_path': ''}
+        ],
+        'list:add': [
+            {'left': '__NON_EXIST__',
+             'left_path': '',
+             'right': {'x': 5, 'y': 5},
+             'right_path': 'e->[3]'}
+        ],
+        'list:remove': [
+            {'left': {'x': 4, 'y': 4},
+             'left_path': 'e->[3]',
+             'right': '__NON_EXIST__',
+             'right_path': ''}
+        ],
         'value_changes': [
             {'left': 2,
              'left_path': 'b',
@@ -40,6 +65,12 @@ def test_only_primitive():
              'old': 2,
              'right': 3,
              'right_path': 'b'},
+            {'left': 1,
+             'left_path': 'e->[0]->x',
+             'new': 0,
+             'old': 1,
+             'right': 0,
+             'right_path': 'e->[0]->x'},
             {'left': False,
              'left_path': 'f',
              'new': True,
@@ -48,7 +79,6 @@ def test_only_primitive():
              'right_path': 'f'}
         ]
     }
-
     assert ycm.to_dict(no_pairs=True) == expected
 
 
@@ -535,6 +565,76 @@ def test_different_types_list():
     ]))
 
     ycm.diff()
+
+
+def test_set_in_set_2():
+    left = {
+        "set_in_set": [
+            {
+                "id": 1,
+                "label": "label:1",
+                "set": [
+                    1,
+                    5,
+                    3
+                ]
+            },
+            {
+                "id": 2,
+                "label": "label:2",
+                "set": [
+                    4,
+                    5,
+                    6
+                ]
+            }
+        ]
+    }
+
+    right = {
+        "set_in_set": [
+            {
+                "id": 2,
+                "label": "label:2",
+                "set": [
+                    6,
+                    5,
+                    4
+                ]
+            },
+            {
+                "id": 1,
+                "label": "label:1111",
+                "set": [
+                    3,
+                    2,
+                    1
+                ]
+            }
+        ]
+    }
+
+    ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
+        f"^set_in_set$",
+        f"^set_in_set->\\[\\d+\\]->set$"
+    ]))
+
+    ycm.diff()
+
+    expected = {
+        'list:add': [
+            {'left': '__NON_EXIST__', 'right': 2, 'left_path': '', 'right_path': 'set_in_set->[1]->set->[1]'}
+        ],
+        'list:remove': [
+            {'left': 5, 'right': '__NON_EXIST__', 'left_path': 'set_in_set->[0]->set->[1]', 'right_path': ''}
+        ],
+        'value_changes': [
+            {'left': 'label:1', 'right': 'label:1111', 'left_path': 'set_in_set->[0]->label',
+             'right_path': 'set_in_set->[1]->label', 'old': 'label:1', 'new': 'label:1111'}
+        ]
+    }
+
+    assert ycm.to_dict(no_pairs=True) == expected
 
 
 def test_compare_list_with_order_fast():

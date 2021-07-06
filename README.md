@@ -19,11 +19,152 @@ JYCM = Json You-Cha-Ma (「is there a difference」in Chinese)
 # Install
 > pip install jycm
 
-# Examples
+# [Document](https://jycm.readthedocs.io)
+
+# Show cases
 
 Here's some examples showing you what you can do with JYCM.
+Only the results without configuration are shown below. (in case you wonder why things are not consistence here)
+
+
+## Default behaviour
+### Code
+
+```python
+from jycm.helper import make_ignore_order_func
+from jycm.jycm import YouchamaJsonDiffer
+
+left = {
+    "a": 1,
+    "b": 2,
+    "d": "12345",
+    "f": False,
+    "e": [
+        {"x": 1, "y": 1},
+        {"x": 2, "y": 2},
+        {"x": 3, "y": 3},
+        {"x": 4, "y": 4},
+    ]
+}
+
+right = {
+    "a": 1,
+    "b": 3,
+    "c": 4,
+    "f": True,
+    "e": [
+        {"x": 0, "y": 1},
+        {"x": 2, "y": 2},
+        {"x": 3, "y": 3},
+        {"x": 5, "y": 5},
+    ]
+}
+
+ycm = YouchamaJsonDiffer(left, right)
+ycm.diff()
+
+expected = {
+    'dict:add': [
+        {'left': '__NON_EXIST__',
+         'left_path': '',
+         'right': 4,
+         'right_path': 'c'}
+    ],
+    'dict:remove': [
+        {'left': '12345',
+         'left_path': 'd',
+         'right': '__NON_EXIST__',
+         'right_path': ''}
+    ],
+    'list:add': [
+        {'left': '__NON_EXIST__',
+         'left_path': '',
+         'right': {'x': 5, 'y': 5},
+         'right_path': 'e->[3]'}
+    ],
+    'list:remove': [
+        {'left': {'x': 4, 'y': 4},
+         'left_path': 'e->[3]',
+         'right': '__NON_EXIST__',
+         'right_path': ''}
+    ],
+    'value_changes': [
+        {'left': 2,
+         'left_path': 'b',
+         'new': 3,
+         'old': 2,
+         'right': 3,
+         'right_path': 'b'},
+        {'left': 1,
+         'left_path': 'e->[0]->x',
+         'new': 0,
+         'old': 1,
+         'right': 0,
+         'right_path': 'e->[0]->x'},
+        {'left': False,
+         'left_path': 'f',
+         'new': True,
+         'old': False,
+         'right': True,
+         'right_path': 'f'}
+    ]
+}
+assert ycm.to_dict(no_pairs=True) == expected
+
+```
+### Graph
+![default_behaviour](docs/source/images/examples/default_behaviour.png)
+
+## Ignore Order
+![ignore_order](docs/source/images/examples/ignore_order.png)
+### Code
+```python
+from jycm.helper import make_ignore_order_func
+from jycm.jycm import YouchamaJsonDiffer
+
+left = {
+    "ignore_order": [1, 2, 3],
+    "not_ignore_order": [1, 2, 3]
+}
+
+right = {
+    "ignore_order": [3, 2, 1],
+    "not_ignore_order": [3, 2, 1]
+}
+
+ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
+    "^ignore_order$"
+]))
+ycm.diff()
+expected = {
+    'list:add': [
+        {'left': '__NON_EXIST__',
+         'left_path': '',
+         'right': 2,
+         'right_path': 'not_ignore_order->[1]'},
+        {'left': '__NON_EXIST__',
+         'left_path': '',
+         'right': 1,
+         'right_path': 'not_ignore_order->[2]'}
+    ],
+    'list:remove': [
+        {'left': 1,
+         'left_path': 'not_ignore_order->[0]',
+         'right': '__NON_EXIST__',
+         'right_path': ''},
+        {'left': 2,
+         'left_path': 'not_ignore_order->[1]',
+         'right': '__NON_EXIST__',
+         'right_path': ''}
+    ]
+}
+assert ycm.to_dict(no_pairs=True) == expected
+```
+
+
 
 ## Diff set-in-set
+### Code
 ```python
 from jycm.helper import make_ignore_order_func
 from jycm.jycm import YouchamaJsonDiffer
@@ -35,7 +176,7 @@ left = {
             "label": "label:1",
             "set": [
                 1,
-                2,
+                5,
                 3
             ]
         },
@@ -51,6 +192,7 @@ left = {
     ]
 }
 
+
 right = {
     "set_in_set": [
         {
@@ -64,7 +206,7 @@ right = {
         },
         {
             "id": 1,
-            "label": "label:1",
+            "label": "label:1111",
             "set": [
                 3,
                 2,
@@ -74,6 +216,7 @@ right = {
     ]
 }
 
+
 ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
     f"^set_in_set$",
     f"^set_in_set->\\[\\d+\\]->set$"
@@ -82,11 +225,26 @@ ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
 ycm.diff()
 
 
-expected = {} # A.K.A No diff
+expected = {
+    'list:add': [
+        {'left': '__NON_EXIST__', 'right': 2, 'left_path': '', 'right_path': 'set_in_set->[1]->set->[1]'}
+    ],
+    'list:remove': [
+        {'left': 5, 'right': '__NON_EXIST__', 'left_path': 'set_in_set->[0]->set->[1]', 'right_path': ''}
+    ],
+    'value_changes': [
+        {'left': 'label:1', 'right': 'label:1111', 'left_path': 'set_in_set->[0]->label',
+         'right_path': 'set_in_set->[1]->label', 'old': 'label:1', 'new': 'label:1111'}
+    ]
+}
 
 assert ycm.to_dict(no_pairs=True) == expected
 
 ```
+
+### Graph 
+![set_in_set](docs/source/images/examples/set_in_set.png)
+
 
 ## Custom operator
 

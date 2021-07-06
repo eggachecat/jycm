@@ -5,3 +5,4 @@ jycm
    :maxdepth: 4
 
    jycm
+   setup

@@ -5,3 +5,4 @@ sphinx-sitemap==2.2.0
 sphinxcontrib-napoleon==0.7
 
 bump2version==1.0.1
+sphinx-rtd-theme

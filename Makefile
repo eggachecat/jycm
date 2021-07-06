@@ -25,8 +25,11 @@ clean:
 	@rm -rf .pytest_cache .tox bytedjycm.egg-info
 	@rm -rf tests/*.pyc tests/__pycache__
 
-docs:
+autodocs:
 	cd docs && sphinx-apidoc -f -o source/ ../jycm && make html && cd ../
+
+docs:
+	cd docs && make html && cd ../
 
 .IGNORE: install_dev
 .PHONY: all check install_dev isort isort_check lint test docs
