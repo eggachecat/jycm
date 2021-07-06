@@ -615,8 +615,8 @@ def test_set_in_set_2():
     }
 
     ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
-        f"^set_in_set$",
-        f"^set_in_set->\\[\\d+\\]->set$"
+        "^set_in_set$",
+        "^set_in_set->\\[\\d+\\]->set$"
     ]))
 
     ycm.diff()
