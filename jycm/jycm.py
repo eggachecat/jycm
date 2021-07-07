@@ -826,28 +826,34 @@ class YouchamaJsonDiffer:
             A score between 0~1 to describe how similar **level.left** and **level.right** are.
 
         """
-        skip, score = self.use_custom_operators(level, drill)
 
-        if skip:
-            return score
+        try:
+            skip, score = self.use_custom_operators(level, drill)
 
-        if level.diff is not None:
-            skip, score = level.diff(drill)
             if skip:
                 return score
 
-        try:
-            level_type = level.get_type()
-        except DifferentTypeException:
-            return 0
+            if level.diff is not None:
+                skip, score = level.diff(drill)
+                if skip:
+                    return score
 
-        if level_type == list:
-            return self.compare_list(level, drill)
+            try:
+                level_type = level.get_type()
+            except DifferentTypeException:
+                return 0
 
-        if level_type == dict:
-            return self.compare_dict(level, drill)
+            if level_type == list:
+                return self.compare_list(level, drill)
 
-        return self.compare_primitive(level, drill)
+            if level_type == dict:
+                return self.compare_dict(level, drill)
+
+            return self.compare_primitive(level, drill)
+        except DiffLevelException as e:
+            raise e
+        except Exception as e:
+            raise DiffLevelException(f"Error {e} [drill={drill}] when compare [{level}]")
 
     def diff_level(self, level: TreeLevel, drill: bool) -> float:
         """Diff level function\
