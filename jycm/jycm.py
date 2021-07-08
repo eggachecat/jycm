@@ -624,7 +624,7 @@ class YouchamaJsonDiffer:
         for pair in pair_list:
             # still can be different under not drill
             self.diff_level(pair.level, False)
-            self.report_pair(level)
+            self.report_pair(pair.level)
             matched_left_index.append(pair.left_index)
             matched_right_index.append(pair.right_index)
 
