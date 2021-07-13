@@ -227,3 +227,15 @@ def test_operator_custom():
         ]
     }
     assert ycm.to_dict(no_pairs=True) == expected
+
+
+def test_array():
+    left = [0, 1, 2]
+    right = [0, 1, 2, 3]
+    ycm = YouchamaJsonDiffer(left, right)
+    ycm.diff()
+    assert ycm.to_dict(no_pairs=True) == {
+        'list:add': [
+            {'left': '__NON_EXIST__', 'right': 3, 'left_path': '', 'right_path': '[3]'}
+        ]
+    }

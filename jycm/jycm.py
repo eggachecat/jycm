@@ -512,7 +512,7 @@ class YouchamaJsonDiffer:
                     left=PLACE_HOLDER_NON_EXIST,
                     right=level.right[i],
                     left_path=[],
-                    right_path=[*level.left_path, i],
+                    right_path=[*level.right_path, i],
                     up=level
                 ))
 
@@ -669,6 +669,7 @@ class YouchamaJsonDiffer:
                     pair_list.append(ListItemPair(value=new_level, left_index=li, right_index=ri))
                     matched_right[ri] = True
                     matched_left[li] = True
+                    break
 
         if not drill:
             # only in the report phase

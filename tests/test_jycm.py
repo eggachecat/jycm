@@ -268,6 +268,23 @@ def test_with_list_without_order():
     assert ycm.to_dict(no_pairs=True) == expected
 
 
+def test_with_list_without_order_2():
+    left = {
+        "ignore_order": [1, 2, 2, 3],
+    }
+
+    right = {
+        "ignore_order": [3, 2, 2, 1],
+    }
+
+    ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
+        "^ignore_order$"
+    ]))
+    ycm.diff()
+
+    assert ycm.to_dict(no_pairs=True) == {}
+
+
 def test_with_list_without_order_with_matching_field():
     left = {
         "ignore_order": [
