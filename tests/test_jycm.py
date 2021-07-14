@@ -82,6 +82,38 @@ def test_only_primitive():
     assert ycm.to_dict(no_pairs=True) == expected
 
 
+def test_with_different_types():
+    left = {
+        "b": 2,
+        "e": [
+            {"x": 1, "y": 1},
+            {"x": 2, "y": 2},
+            {"x": 3, "y": 3},
+            {"x": 4, "y": 4},
+        ]
+    }
+
+    right = {
+        "b": None,
+        "e": None
+    }
+    ycm = YouchamaJsonDiffer(left, right)
+    ycm.diff()
+
+    expected = {
+        'value_changes': [
+            {'left': 2, 'right': None, 'left_path': 'b', 'right_path': 'b', 'old': 2, 'new': None},
+            {'left': [{'x': 1, 'y': 1}, {'x': 2, 'y': 2}, {'x': 3, 'y': 3}, {'x': 4, 'y': 4}],
+             'right': None, 'left_path': 'e', 'right_path': 'e',
+             'old': [{'x': 1, 'y': 1}, {'x': 2, 'y': 2}, {'x': 3, 'y': 3}, {'x': 4, 'y': 4}],
+             'new': None}
+        ]
+
+    }
+
+    assert ycm.to_dict(no_pairs=True) == expected
+
+
 def test_with_list_1():
     left = {
         "v": [1, 2, 3]

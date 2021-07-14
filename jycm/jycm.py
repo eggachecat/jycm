@@ -1,7 +1,7 @@
 from typing import Callable, Dict, List, Tuple, Union
 
 from jycm.common import EVENT_PAIR, PLACE_HOLDER_NON_EXIST, EVENT_LIST_REMOVE, EVENT_LIST_ADD, EVENT_DICT_REMOVE, \
-    EVENT_DICT_ADD
+    EVENT_DICT_ADD, EVENT_VALUE_CHANGE
 from jycm.helper import make_json_path_key
 from jycm.km_matcher import KMMatcher
 from jycm.operator import BaseOperator
@@ -789,7 +789,7 @@ class YouchamaJsonDiffer:
         if level.left != level.right:
             # 非演习
             if not drill:
-                self.report("value_changes", level, {
+                self.report(EVENT_VALUE_CHANGE, level, {
                     "old": level.left,
                     "new": level.right
                 })
@@ -842,7 +842,8 @@ class YouchamaJsonDiffer:
             try:
                 level_type = level.get_type()
             except DifferentTypeException:
-                return 0
+                # just use compare_primitive to report a value_change
+                return self.compare_primitive(level, drill)
 
             if level_type == list:
                 return self.compare_list(level, drill)

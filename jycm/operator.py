@@ -36,7 +36,8 @@ def register_operator(operator_class: Type[BaseOperator]):
 
     for name in operator_name_list:
         if name in OPERATOR_DICT:
-            raise KeyError(f"duplicate operator name: {operator_class.__operator_name__}")
+            # just a warning allow overriding
+            logging.warning(f"duplicate operator name: {operator_class.__operator_name__}")
 
         OPERATOR_DICT[name] = operator_class
 
