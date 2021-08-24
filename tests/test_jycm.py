@@ -686,6 +686,95 @@ def test_set_in_set_2():
     assert ycm.to_dict(no_pairs=True) == expected
 
 
+def test_report():
+    left = {
+        "set_in_set": [
+            {
+                "set": [
+                    1,
+                    5,
+                ]
+            },
+            {
+                "set": [
+                    4,
+                    5,
+                ]
+            }
+        ]
+    }
+
+    right = {
+        "set_in_set": [
+            {
+                "set": [
+                    5,
+                    4
+                ]
+            },
+            {
+                "set": [
+                    5,
+                    2
+                ]
+            }
+        ]
+    }
+
+    ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
+        "^set_in_set$",
+        "^set_in_set->\\[\\d+\\]->set$"
+    ]))
+
+    ycm.diff()
+    expected = {
+        'just4vis:pairs': [
+            {'left': {'set': [4, 5]},
+             'left_path': 'set_in_set->[1]',
+             'right': {'set': [5, 4]},
+             'right_path': 'set_in_set->[0]'},
+            {'left': [4, 5],
+             'left_path': 'set_in_set->[1]->set',
+             'right': [5, 4],
+             'right_path': 'set_in_set->[0]->set'},
+            {'left': 4,
+             'left_path': 'set_in_set->[1]->set->[0]',
+             'right': 4,
+             'right_path': 'set_in_set->[0]->set->[1]'},
+            {'left': 5,
+             'left_path': 'set_in_set->[1]->set->[1]',
+             'right': 5,
+             'right_path': 'set_in_set->[0]->set->[0]'},
+            {'left': {'set': [1, 5]},
+             'left_path': 'set_in_set->[0]',
+             'right': {'set': [5, 2]},
+             'right_path': 'set_in_set->[1]'},
+            {'left': [1, 5],
+             'left_path': 'set_in_set->[0]->set',
+             'right': [5, 2],
+             'right_path': 'set_in_set->[1]->set'},
+            {'left': 5,
+             'left_path': 'set_in_set->[0]->set->[1]',
+             'right': 5,
+             'right_path': 'set_in_set->[1]->set->[0]'}
+        ],
+        'list:add': [
+            {'left': '__NON_EXIST__',
+             'left_path': '',
+             'right': 2,
+             'right_path': 'set_in_set->[1]->set->[1]'}
+        ],
+        'list:remove': [
+            {'left': 1,
+             'left_path': 'set_in_set->[0]->set->[0]',
+             'right': '__NON_EXIST__',
+             'right_path': ''}
+        ]
+    }
+
+    assert ycm.to_dict() == expected
+
+
 def test_compare_list_with_order_fast():
     left = {
         "list": [

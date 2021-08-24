@@ -1,7 +1,7 @@
 from typing import Callable, Dict, List, Tuple, Union
 
-from jycm.common import EVENT_PAIR, PLACE_HOLDER_NON_EXIST, EVENT_LIST_REMOVE, EVENT_LIST_ADD, EVENT_DICT_REMOVE, \
-    EVENT_DICT_ADD, EVENT_VALUE_CHANGE
+from jycm.common import (EVENT_DICT_ADD, EVENT_DICT_REMOVE, EVENT_LIST_ADD, EVENT_LIST_REMOVE, EVENT_PAIR,
+                         EVENT_VALUE_CHANGE, PLACE_HOLDER_NON_EXIST)
 from jycm.helper import make_json_path_key
 from jycm.km_matcher import KMMatcher
 from jycm.operator import BaseOperator
@@ -212,6 +212,8 @@ class YouchamaJsonDiffer:
 
         self.ignore_order_func: Callable[[TreeLevel, bool], bool] = ignore_order_func
 
+        self.event_pair_dict: Dict[str, bool] = {}
+
     def report_pair(self, level: TreeLevel):
         """Report pair of json path
 
@@ -221,7 +223,13 @@ class YouchamaJsonDiffer:
             level: TreeLevel
 
         """
-        if make_json_path_key(level.left_path) != make_json_path_key(level.right_path):
+        left_key = make_json_path_key(level.left_path)
+        right_key = make_json_path_key(level.right_path)
+        unique_key = f"{left_key}__@__{right_key}"
+
+        if left_key != right_key and unique_key not in self.event_pair_dict:
+            self.event_pair_dict[unique_key] = True
+
             self.records[EVENT_PAIR].append(Record(
                 event=EVENT_PAIR, level=level, info={}
             ))
@@ -829,6 +837,11 @@ class YouchamaJsonDiffer:
         """
 
         try:
+
+            if not drill:
+                # just report
+                self.report_pair(level)
+
             skip, score = self.use_custom_operators(level, drill)
 
             if skip:
