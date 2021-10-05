@@ -19,6 +19,12 @@ JYCM = Json You-Cha-Ma (「is there a difference」in Chinese)
 # Install
 > pip install jycm
 
+# Renderer
+Yes! JYCM has a [rendering tool](https://github.com/eggachecat/react-jycm-viewer) out of the box!
+
+![gif-show](https://media.giphy.com/media/03PbgaFqYCwyhzOUSU/giphy.gif)
+
+
 # [Document](https://jycm.readthedocs.io/en/latest/index.html)
 
 # Show cases
