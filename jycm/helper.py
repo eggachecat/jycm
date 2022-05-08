@@ -65,7 +65,7 @@ def dump_html_output(left, right, diff_result, output):
     html = render_to_html(left, right, diff_result)
 
     shutil.copytree(os.path.join(os.path.dirname(os.path.realpath(__file__)), "jycm_viewer_assets/"), output)
-    index_url = os.path.join(output, "./index.html")
+    index_url = os.path.join(output, "index.html")
     with open(index_url, "w") as fp:
         fp.write(html)
     return index_url 

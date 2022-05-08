@@ -49,7 +49,7 @@ def load_json(raw):
         except:
             raise ValueError(f"Not a valid json: `{raw}`")
 
-def run(left, right, rules, output, open):
+def run(left, right, rules, output, show):
     left = load_json(left)
     right = load_json(right)
     rules = load_json(rules)
@@ -58,15 +58,22 @@ def run(left, right, rules, output, open):
 
     if output is not None:
         index_url = dump_html_output(left, right, result, output)
-        if open:
+        if show:
+            
             try:
                 import webbrowser
-                webbrowser.open(index_url)
-            except:
+                from sys import platform
+                if platform == "linux" or platform == "linux2":
+                    webbrowser.open(f"file://{index_url}")
+                elif platform == "darwin":
+                    webbrowser.open(f"file://{index_url}")
+                elif platform == "win32":
+                    webbrowser.open(f"{index_url}")               
+            except Exception as e:
                 print("You have to install webbrowser to open the html.\nRun pip install webbrowser")
 
     print("No diff" if same else "Has diff!")
-    print(result)
+    # print(result)
 
 def get_json_input(key):
     while True:
@@ -103,16 +110,16 @@ def interactive_main(output):
 @click.option('--right', default='{}', help='Right Json')
 @click.option('--rules', default='[]', help='Rules')
 @click.option('--output', default=None, help='The folder where the results will be dumped.')
-@click.option('--open', is_flag=True, show_default=True, help='Open the browser; This is valid only if you specify the output paramter.')
-def main(interactive, left, right, rules, output, open):
-    print(interactive, left, right, rules, output, open)
+@click.option('--show', is_flag=True, show_default=True, help='Open the browser; This is valid only if you specify the output paramter.')
+def main(interactive, left, right, rules, output, show):
+    print(interactive, left, right, rules, output, show)
     if interactive:
         return interactive_main(output)
 
     if output is None:
         output = os.path.join(tempfile.mkdtemp(), f"jycm-{int(time.time())}")
 
-    return run(left, right, rules, output, open)
+    return run(left, right, rules, output, show)
 
 
 if __name__ == '__main__':

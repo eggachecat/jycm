@@ -46,12 +46,18 @@ python -m jycm --help
 
 ### Example
 Use
+-  mac/linux
 ```bash
-python -m jycm --open --left="{'normal-string': 'aaaaa', 'ignore_me-string': 'aaaaa', 'normal-list-1': [{'val': 1}, {'val': 2}, {'val': 3}, {'val': 4}, {'val': 5}], 'set_in_set': [{'id': 1, 'label': 'label:1', 'set': [1, 2, 3, 4, 5]}, {'id': 2, 'label': 'label:2', 'set': [4, 5, 6, 7, 8]}]}" --right="{'normal-string': 'bbbbb', 'ignore_me-string': 'bbbbb', 'normal-list-1': [{'val': 1}, {'val': 9}, {'val': 3}, {'val': 8}, {'what': 5}], 'set_in_set': [{'id': 2, 'label': 'label:2', 'set': [6, 5, 4, 7]}, {'id': 1, 'label': 'label:1', 'set': [3, 2, 1, 4, 8, 9]}]}" --rules="[{'operation': 'ignore', 'value': '^ignore_me.*'}, {'value': '^set_in_set$', 'operation': 'operator:list:ignoreOrder'}, {'value': 'set_in_set->\\[\\d+\\]->set', 'operation': 'operator:list:ignoreOrder'}]" 
+python -m jycm --show \
+--left="{\"normal-string\":\"aaaaa\",\"ignore_me-string\":\"aaaaa\",\"normal-list-1\":[{\"val\":1},{\"val\":2},{\"val\":3},{\"val\":4},{\"val\":5}],\"set_in_set\":[{\"id\":1,\"label\":\"label:1\",\"set\":[1,2,3,4,5]},{\"id\":2,\"label\":\"label:2\",\"set\":[4,5,6,7,8]}]}" \
+--right="{\"normal-string\":\"bbbbb\",\"ignore_me-string\":\"bbbbb\",\"normal-list-1\":[{\"val\":1},{\"val\":9},{\"val\":3},{\"val\":8},{\"what\":5}],\"set_in_set\":[{\"id\":2,\"label\":\"label:2\",\"set\":[6,5,4,7]},{\"id\":1,\"label\":\"label:1\",\"set\":[3,2,1,4,8,9]}]}" \
+--rules="[{\"operation\":\"ignore\",\"value\":\"^ignore_me.*\"},{\"value\":\"^set_in_set$\",\"operation\":\"operator:list:ignoreOrder\"},{\"value\":\"set_in_set->\\\\[\\\\d+\\\\]->set\",\"operation\":\"operator:list:ignoreOrder\"}]" 
 ```
+- or on windows:
+```python -m jycm --show --left="{'normal-string': 'aaaaa', 'ignore_me-string': 'aaaaa', 'normal-list-1': [{'val': 1}, {'val': 2}, {'val': 3}, {'val': 4}, {'val': 5}], 'set_in_set': [{'id': 1, 'label': 'label:1', 'set': [1, 2, 3, 4, 5]}, {'id': 2, 'label': 'label:2', 'set': [4, 5, 6, 7, 8]}]}" --right="{'normal-string': 'bbbbb', 'ignore_me-string': 'bbbbb', 'normal-list-1': [{'val': 1}, {'val': 9}, {'val': 3}, {'val': 8}, {'what': 5}], 'set_in_set': [{'id': 2, 'label': 'label:2', 'set': [6, 5, 4, 7]}, {'id': 1, 'label': 'label:1', 'set': [3, 2, 1, 4, 8, 9]}]}" --rules="[{'operation': 'ignore', 'value': '^ignore_me.*'}, {'value': '^set_in_set$', 'operation': 'operator:list:ignoreOrder'}, {'value': 'set_in_set->\\[\\d+\\]->set', 'operation': 'operator:list:ignoreOrder'}]"```
 
 then you will see a popup like this:
-![cli-popup](docs/source/images/examples/cli-popup.png)
+![cli-popup](docs/source/images/examples/cli-popup.jpg)
 
 
 ## Interactive
