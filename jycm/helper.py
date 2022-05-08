@@ -1,7 +1,7 @@
-import re
 import json
-import shutil
 import os
+import re
+import shutil
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
@@ -68,4 +68,4 @@ def dump_html_output(left, right, diff_result, output):
     index_url = os.path.join(output, "index.html")
     with open(index_url, "w") as fp:
         fp.write(html)
-    return index_url 
+    return index_url

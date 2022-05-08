@@ -1,3 +1,4 @@
 include README.md
 include requirements.txt
 include requirements-dev.txt
+include jycm/jycm_viewer_assets/*

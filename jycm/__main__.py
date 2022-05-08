@@ -1,10 +1,11 @@
 import json
 import os
-import click
 import tempfile
 import time
 
-from jycm.helper import make_ignore_order_func, dump_html_output
+import click
+
+from jycm.helper import dump_html_output, make_ignore_order_func
 from jycm.jycm import YouchamaJsonDiffer
 from jycm.operator import get_operator
 
@@ -43,11 +44,12 @@ def diff_two_json_with_rules(left, right, rules, debug=False, fast_mode=False):
 def load_json(raw):
     try:
         return json.loads(raw)
-    except:
+    except Exception as e:
         try:
             return json.loads(raw.replace("\'", "\""))
-        except:
+        except Exception as e:
             raise ValueError(f"Not a valid json: `{raw}`")
+
 
 def run(left, right, rules, output, show):
     left = load_json(left)
@@ -59,7 +61,6 @@ def run(left, right, rules, output, show):
     if output is not None:
         index_url = dump_html_output(left, right, result, output)
         if show:
-            
             try:
                 import webbrowser
                 from sys import platform
@@ -68,12 +69,12 @@ def run(left, right, rules, output, show):
                 elif platform == "darwin":
                     webbrowser.open(f"file://{index_url}")
                 elif platform == "win32":
-                    webbrowser.open(f"{index_url}")               
+                    webbrowser.open(f"{index_url}")
             except Exception as e:
                 print("You have to install webbrowser to open the html.\nRun pip install webbrowser")
 
     print("No diff" if same else "Has diff!")
-    # print(result)
+
 
 def get_json_input(key):
     while True:
@@ -101,7 +102,6 @@ def interactive_main(output):
         except Exception as e:
             print("Exception", e)
             pass
-            
 
 
 @click.command()
@@ -110,7 +110,7 @@ def interactive_main(output):
 @click.option('--right', default='{}', help='Right Json')
 @click.option('--rules', default='[]', help='Rules')
 @click.option('--output', default=None, help='The folder where the results will be dumped.')
-@click.option('--show', is_flag=True, show_default=True, help='Open the browser; This is valid only if you specify the output paramter.')
+@click.option('--show', is_flag=True, show_default=True, help='Whether or not open the browser to visualize result.')
 def main(interactive, left, right, rules, output, show):
     print(interactive, left, right, rules, output, show)
     if interactive:

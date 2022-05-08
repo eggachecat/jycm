@@ -78,4 +78,5 @@ setup(
         # for PEP484 & PEP561
         NAME: ['py.typed', '*.pyi'],
     },
+    include_package_data=True
 )

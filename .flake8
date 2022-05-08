@@ -5,4 +5,4 @@ exclude =
     venv_py/,
     .eggs,
     .tox
-ignore = D400,D300,D205,D200,D105,D100,D101,D103,D107,E721,F407
+ignore = D400,D300,D205,D200,D105,D100,D101,D103,D107,E721,F407,F841
