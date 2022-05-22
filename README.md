@@ -59,6 +59,11 @@ python -m jycm --show \
 
 ```python -m jycm --show --left="{'normal-string': 'aaaaa', 'ignore_me-string': 'aaaaa', 'normal-list-1': [{'val': 1}, {'val': 2}, {'val': 3}, {'val': 4}, {'val': 5}], 'set_in_set': [{'id': 1, 'label': 'label:1', 'set': [1, 2, 3, 4, 5]}, {'id': 2, 'label': 'label:2', 'set': [4, 5, 6, 7, 8]}]}" --right="{'normal-string': 'bbbbb', 'ignore_me-string': 'bbbbb', 'normal-list-1': [{'val': 1}, {'val': 9}, {'val': 3}, {'val': 8}, {'what': 5}], 'set_in_set': [{'id': 2, 'label': 'label:2', 'set': [6, 5, 4, 7]}, {'id': 1, 'label': 'label:1', 'set': [3, 2, 1, 4, 8, 9]}]}" --rules="[{'operation': 'ignore', 'value': '^ignore_me.*'}, {'value': '^set_in_set$', 'operation': 'operator:list:ignoreOrder'}, {'value': 'set_in_set->\\[\\d+\\]->set', 'operation': 'operator:list:ignoreOrder'}]"```
 
+- when the json are too large you can pass file path
+```bash
+python -m jycm --show  --left_file /xxxx/your_left.json --right_file ~/xxxx/your_right.json
+```
+
 then you will see a popup like this:
 ![cli-popup](https://raw.githubusercontent.com/eggachecat/jycm/master/docs/source/images/examples/cli-popup.jpg)
 
@@ -81,6 +86,8 @@ Only the results without configuration are shown below. (in case you wonder why 
 
 ```python
 from jycm.helper import make_ignore_order_func
+from jycm.jycm import YouchamaJsonDiffer
+from jycm.helper import dump_html_output, open_url
 from jycm.jycm import YouchamaJsonDiffer
 
 left = {
@@ -111,6 +118,17 @@ right = {
 
 ycm = YouchamaJsonDiffer(left, right)
 ycm.diff()
+diff_result = ycm.to_dict()
+
+# you can find generated html in the folder
+output_dir = "/Users/xxx/jycm-example-1"
+# you can directly view it by clicking the index.html file inside the folder
+url = dump_html_output(left, right, diff_result, output_dir)
+
+# if you want to open it from python
+open_url(url)
+
+
 
 expected = {
     'dict:add': [

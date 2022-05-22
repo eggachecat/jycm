@@ -5,7 +5,7 @@ import time
 
 import click
 
-from jycm.helper import dump_html_output, make_ignore_order_func
+from jycm.helper import dump_html_output, make_ignore_order_func, open_url
 from jycm.jycm import YouchamaJsonDiffer
 from jycm.operator import get_operator
 
@@ -61,17 +61,7 @@ def run(left, right, rules, output, show):
     if output is not None:
         index_url = dump_html_output(left, right, result, output)
         if show:
-            try:
-                import webbrowser
-                from sys import platform
-                if platform == "linux" or platform == "linux2":
-                    webbrowser.open(f"file://{index_url}")
-                elif platform == "darwin":
-                    webbrowser.open(f"file://{index_url}")
-                elif platform == "win32":
-                    webbrowser.open(f"{index_url}")
-            except Exception as e:
-                print("You have to install webbrowser to open the html.\nRun pip install webbrowser")
+            open_url(index_url)
 
     print("No diff" if same else "Has diff!")
 
@@ -86,7 +76,7 @@ def get_json_input(key):
             print(f"Not a valid json: {val}")
             continue
         except Exception as e:
-            raise(e)
+            raise (e)
 
 
 def interactive_main(output):
@@ -104,15 +94,29 @@ def interactive_main(output):
             pass
 
 
+def load_file(file_path):
+    with open(file_path) as fp:
+        return fp.read()
+
+
 @click.command()
 @click.option('--interactive', is_flag=True, show_default=True, help='Enter interactive mode')
 @click.option('--left', default='{}', help='Left Json')
 @click.option('--right', default='{}', help='Right Json')
+@click.option('--left_file', default=None,
+              help='Left Json file path, if both left and this are given, jycm will use the file')
+@click.option('--right_file', default=None,
+              help='Right Json file path, if both right and this are given, jycm will use the file')
 @click.option('--rules', default='[]', help='Rules')
 @click.option('--output', default=None, help='The folder where the results will be dumped.')
 @click.option('--show', is_flag=True, show_default=True, help='Whether or not open the browser to visualize result.')
-def main(interactive, left, right, rules, output, show):
-    print(interactive, left, right, rules, output, show)
+def main(interactive, left, right, left_file, right_file, rules, output, show):
+    if left_file is not None:
+        left = load_file(left_file)
+
+    if right_file is not None:
+        right = load_file(right_file)
+
     if interactive:
         return interactive_main(output)
 

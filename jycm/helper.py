@@ -50,9 +50,9 @@ HTML_TEMPLATE = """
 """.strip()
 
 
-def render_to_html(left, right, diff_result, __MAIN_SCRIPT_PATH__="./main.js"):
+def render_to_html(left, right, diff_result, main_script_path="./main.js"):
     return HTML_TEMPLATE.replace(
-        "__MAIN_SCRIPT_PATH__", f"{__MAIN_SCRIPT_PATH__}"
+        "__MAIN_SCRIPT_PATH__", f"{main_script_path}"
     ).replace(
         "__JYCM_LEFT_JSON_STR__", f"JSON.stringify({json.dumps(left)});"
     ).replace(
@@ -69,3 +69,17 @@ def dump_html_output(left, right, diff_result, output):
     with open(index_url, "w") as fp:
         fp.write(html)
     return index_url
+
+
+def open_url(index_url):
+    try:
+        import webbrowser
+        from sys import platform
+        if platform == "linux" or platform == "linux2":
+            webbrowser.open(f"file://{index_url}")
+        elif platform == "darwin":
+            webbrowser.open(f"file://{index_url}")
+        elif platform == "win32":
+            webbrowser.open(f"{index_url}")
+    except Exception as e:
+        print("You have to install webbrowser to open the html.\nRun pip install webbrowser")
