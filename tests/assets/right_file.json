@@ -1,0 +1,45 @@
+{
+  "normal-string": "bbbbb",
+  "ignore_me-string": "bbbbb",
+  "normal-list-1": [
+    {
+      "val": 1
+    },
+    {
+      "val": 9
+    },
+    {
+      "val": 3
+    },
+    {
+      "val": 8
+    },
+    {
+      "what": 5
+    }
+  ],
+  "set_in_set": [
+    {
+      "id": 2,
+      "label": "label:2",
+      "set": [
+        6,
+        5,
+        4,
+        7
+      ]
+    },
+    {
+      "id": 1,
+      "label": "label:1",
+      "set": [
+        3,
+        2,
+        1,
+        4,
+        8,
+        9
+      ]
+    }
+  ]
+}

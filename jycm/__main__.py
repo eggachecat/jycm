@@ -63,7 +63,8 @@ def run(left, right, rules, output, show):
         if show:
             open_url(index_url)
 
-    print("No diff" if same else "Has diff!")
+    print(result)
+    return 'No-Diff' if same else "Has-diff"
 
 
 def get_json_input(key):
@@ -108,14 +109,19 @@ def load_file(file_path):
 @click.option('--right_file', default=None,
               help='Right Json file path, if both right and this are given, jycm will use the file')
 @click.option('--rules', default='[]', help='Rules')
+@click.option('--rules_file', default=None,
+              help='Rules Json file path, if both Json and this are given, jycm will use the file')
 @click.option('--output', default=None, help='The folder where the results will be dumped.')
 @click.option('--show', is_flag=True, show_default=True, help='Whether or not open the browser to visualize result.')
-def main(interactive, left, right, left_file, right_file, rules, output, show):
+def main(interactive, left, right, left_file, right_file, rules, rules_file, output, show):
     if left_file is not None:
         left = load_file(left_file)
 
     if right_file is not None:
         right = load_file(right_file)
+
+    if rules_file is not None:
+        rules = load_file(rules_file)
 
     if interactive:
         return interactive_main(output)

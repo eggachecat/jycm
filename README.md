@@ -80,8 +80,38 @@ python -m jycm --interactive
 Here's some examples showing you what you can do with JYCM.
 Only the results without configuration are shown below. (in case you wonder why things are not consistence here)
 
+## Notes
+Kindly suggestion from [@TonisPiip](https://github.com/TonisPiip)
+
+- Why you want `no_pairs=True` in `ycm.to_dict(no_pairs=True)`? 
+  - `pairs` are for rendering purpose (you can see the usage here at [react-jycm-viewer](https://github.com/eggachecat/react-jycm-viewer/blob/master/src/hooks/useJYCM.tsx#L30)) 
+  - usually `pairs` are pretty large json (especially for some *relocation* diff)
+  - so if you just want to get the diff you don't need `pairs`
 
 ## Default behaviour
+Diff two json objects are easy:
+
+Basically you do this:
+
+```python
+from jycm.jycm import YouchamaJsonDiffer
+left = {} # your json
+right = {} # your json
+
+ycm = YouchamaJsonDiffer(left, right)
+diff_result = ycm.get_diff() 
+"""
+ycm.get_diff() 
+
+are the same as
+
+ycm.diff()
+ycm.to_dict*(
+"""
+```
+
+
+
 ### Code
 
 ```python
@@ -117,8 +147,12 @@ right = {
 }
 
 ycm = YouchamaJsonDiffer(left, right)
-ycm.diff()
-diff_result = ycm.to_dict()
+
+diff_result = ycm.get_diff() # new API
+
+# legacy usage:
+# ycm.diff()
+# diff_result = ycm.to_dict()
 
 # you can find generated html in the folder
 output_dir = "/Users/xxx/jycm-example-1"
@@ -201,7 +235,9 @@ right = {
 ycm = YouchamaJsonDiffer(left, right, ignore_order_func=make_ignore_order_func([
     "^ignore_order$"
 ]))
-ycm.diff()
+
+diff_result = ycm.get_diff() # new API
+
 expected = {
     'list:add': [
         {'left': '__NON_EXIST__',
@@ -224,7 +260,10 @@ expected = {
          'right_path': ''}
     ]
 }
-assert ycm.to_dict(no_pairs=True) == expected
+# legacy usage:
+# ycm.diff()
+# diff_result = ycm.to_dict()
+assert ycm.diff_result(no_pairs=True) == expected
 ```
 ### Graph
 ![ignore_order](https://raw.githubusercontent.com/eggachecat/jycm/master/docs/source/images/examples/ignore_order.png)

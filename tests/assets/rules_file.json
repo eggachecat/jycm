@@ -1,0 +1,14 @@
+[
+  {
+    "operation": "ignore",
+    "value": "^ignore_me.*"
+  },
+  {
+    "value": "^set_in_set$",
+    "operation": "operator:list:ignoreOrder"
+  },
+  {
+    "value": "set_in_set->\\\\[\\\\d+\\\\]->set",
+    "operation": "operator:list:ignoreOrder"
+  }
+]

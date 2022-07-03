@@ -912,3 +912,17 @@ class YouchamaJsonDiffer:
         """
         root_level = TreeLevel(left=self.left, right=self.right, left_path=[], right_path=[], up=None)
         return self.diff_level(level=root_level, drill=False) == 1
+
+    def get_diff(self, no_pairs=False):
+        """Do the diff and return the json diff
+
+        Normally to_dict is enough to collect all the info.
+
+        Args:
+            no_pairs: boolean to decide whether to report pairs of json path
+
+        Returns:
+            a dict
+        """
+        self.diff()
+        return self.to_dict(no_pairs)
