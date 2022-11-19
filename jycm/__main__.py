@@ -101,6 +101,10 @@ def load_file(file_path):
         return fp.read()
 
 
+def get_file_name(file_path):
+    return os.path.basename(file_path)
+
+
 @click.command()
 @click.option('--interactive', is_flag=True, show_default=True, help='Enter interactive mode')
 @click.option('--left', default='{}', help='Left Json')
@@ -109,8 +113,8 @@ def load_file(file_path):
               help='Left Json file path, if both left and this are given, jycm will use the file')
 @click.option('--right_file', default=None,
               help='Right Json file path, if both right and this are given, jycm will use the file')
-@click.option('--left_title', default='Left', help='Left Title')
-@click.option('--right_title', default='Right', help='Right Title')
+@click.option('--left_title', default=None, help='Left Title; By default will be the file name')
+@click.option('--right_title', default=None, help='Right Title; By default will be the file name')
 @click.option('--rules', default='[]', help='Rules')
 @click.option('--rules_file', default=None,
               help='Rules Json file path, if both Json and this are given, jycm will use the file')
@@ -119,9 +123,11 @@ def load_file(file_path):
 def main(interactive, left, right, left_file, right_file, left_title, right_title, rules, rules_file, output, show):
     if left_file is not None:
         left = load_file(left_file)
+        left_title = get_file_name(left_file)
 
     if right_file is not None:
         right = load_file(right_file)
+        right_title = get_file_name(right_file)
 
     if rules_file is not None:
         rules = load_file(rules_file)
@@ -131,6 +137,12 @@ def main(interactive, left, right, left_file, right_file, left_title, right_titl
 
     if output is None:
         output = os.path.join(tempfile.mkdtemp(), f"jycm-{int(time.time())}")
+
+    if left_title is None:
+        left_title = 'Left'
+
+    if right_title is None:
+        right_title = 'Right'
 
     return run(left, right, rules, output, show, left_title=left_title, right_title=right_title)
 

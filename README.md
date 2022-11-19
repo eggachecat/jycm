@@ -40,7 +40,7 @@ python -m jycm --help
 #   --rules TEXT   Rules
 #   --output TEXT  The folder where the results will be dumped.
 #   --open         Open the browser; This is valid only if you specify the
-#                  output paramter.
+#                  output parameter.
 #   --help         Show this message and exit.
 ```
 
@@ -52,7 +52,9 @@ Use
 python -m jycm --show \
 --left="{\"normal-string\":\"aaaaa\",\"ignore_me-string\":\"aaaaa\",\"normal-list-1\":[{\"val\":1},{\"val\":2},{\"val\":3},{\"val\":4},{\"val\":5}],\"set_in_set\":[{\"id\":1,\"label\":\"label:1\",\"set\":[1,2,3,4,5]},{\"id\":2,\"label\":\"label:2\",\"set\":[4,5,6,7,8]}]}" \
 --right="{\"normal-string\":\"bbbbb\",\"ignore_me-string\":\"bbbbb\",\"normal-list-1\":[{\"val\":1},{\"val\":9},{\"val\":3},{\"val\":8},{\"what\":5}],\"set_in_set\":[{\"id\":2,\"label\":\"label:2\",\"set\":[6,5,4,7]},{\"id\":1,\"label\":\"label:1\",\"set\":[3,2,1,4,8,9]}]}" \
---rules="[{\"operation\":\"ignore\",\"value\":\"^ignore_me.*\"},{\"value\":\"^set_in_set$\",\"operation\":\"operator:list:ignoreOrder\"},{\"value\":\"set_in_set->\\\\[\\\\d+\\\\]->set\",\"operation\":\"operator:list:ignoreOrder\"}]" 
+--rules="[{\"operation\":\"ignore\",\"value\":\"^ignore_me.*\"},{\"value\":\"^set_in_set$\",\"operation\":\"operator:list:ignoreOrder\"},{\"value\":\"set_in_set->\\\\[\\\\d+\\\\]->set\",\"operation\":\"operator:list:ignoreOrder\"}]" \
+--left_title="Left Title" \
+--right_title="Right Title"
 ```
 
 - or on windows:

@@ -40,7 +40,6 @@ HTML_TEMPLATE = """
         window.diffResult = __JYCM_DIFF_RESULT__;
         window.jycmLeftTitle = __JYCM_LEFT_TITLE_STR__;
         window.jycmRightTitle = __JYCM_RIGHT_TITLE_STR__;
-
     </script>
     <script defer="defer" src="__MAIN_SCRIPT_PATH__"></script>
 </head>
@@ -53,7 +52,7 @@ HTML_TEMPLATE = """
 """.strip()
 
 
-def render_to_html(left, right, diff_result, main_script_path="./main.js", left_title='Left', right_title='Right'):
+def render_to_html(left, right, diff_result, main_script_path="./index.js", left_title='Left', right_title='Right'):
     return HTML_TEMPLATE.replace(
         "__MAIN_SCRIPT_PATH__", f"{main_script_path}"
     ).replace(
