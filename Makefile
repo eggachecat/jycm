@@ -22,7 +22,7 @@ testcov:
 	pytest --cov=jycm --cov-report term-missing
 
 clean:
-	@rm -rf .pytest_cache .tox bytedjycm.egg-info
+	@rm -rf .pytest_cache .tox jycm.egg-info
 	@rm -rf tests/*.pyc tests/__pycache__
 
 autodocs:
