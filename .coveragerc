@@ -5,3 +5,4 @@ omit =
     *__init__*
     */operator.py
     */km_matcher.py
+    */__main__.py

@@ -77,7 +77,7 @@ def dump_html_output(left, right, diff_result, output, left_title='Left', right_
     return index_url
 
 
-def open_url(index_url):
+def open_url(index_url):  # pragma: no cover
     try:
         import webbrowser
         from sys import platform

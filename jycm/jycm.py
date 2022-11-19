@@ -81,7 +81,7 @@ class TreeLevel:
         """
         return f"{make_json_path_key(self.left_path)}/{make_json_path_key(self.right_path)}"
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"{self.to_dict()}"
 
 
@@ -165,7 +165,7 @@ class ListItemPair:
         self.left_index = left_index
         self.right_index = right_index
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return f"<left_index=[{self.left_index}],right_index=[{self.right_index}],level=[{self.level}]>"
 
 
