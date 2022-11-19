@@ -38,6 +38,9 @@ HTML_TEMPLATE = """
         window.jycmLeftJsonStr = __JYCM_LEFT_JSON_STR__;
         window.jycmRightJsonStr = __JYCM_RIGHT_JSON_STR__;
         window.diffResult = __JYCM_DIFF_RESULT__;
+        window.jycmLeftTitle = __JYCM_LEFT_TITLE_STR__;
+        window.jycmRightTitle = __JYCM_RIGHT_TITLE_STR__;
+
     </script>
     <script defer="defer" src="__MAIN_SCRIPT_PATH__"></script>
 </head>
@@ -50,7 +53,7 @@ HTML_TEMPLATE = """
 """.strip()
 
 
-def render_to_html(left, right, diff_result, main_script_path="./main.js"):
+def render_to_html(left, right, diff_result, main_script_path="./main.js", left_title='Left', right_title='Right'):
     return HTML_TEMPLATE.replace(
         "__MAIN_SCRIPT_PATH__", f"{main_script_path}"
     ).replace(
@@ -58,11 +61,15 @@ def render_to_html(left, right, diff_result, main_script_path="./main.js"):
     ).replace(
         "__JYCM_RIGHT_JSON_STR__", f"JSON.stringify({json.dumps(right)});"
     ).replace(
+        "__JYCM_LEFT_TITLE_STR__", f"\"{left_title}\""
+    ).replace(
+        "__JYCM_RIGHT_TITLE_STR__", f"\"{right_title}\""
+    ).replace(
         "__JYCM_DIFF_RESULT__", f"{json.dumps(diff_result)};")
 
 
-def dump_html_output(left, right, diff_result, output):
-    html = render_to_html(left, right, diff_result)
+def dump_html_output(left, right, diff_result, output, left_title='Left', right_title='Right'):
+    html = render_to_html(left, right, diff_result, left_title=left_title, right_title=right_title)
 
     shutil.copytree(os.path.join(os.path.dirname(os.path.realpath(__file__)), "jycm_viewer_assets/"), output)
     index_url = os.path.join(output, "index.html")

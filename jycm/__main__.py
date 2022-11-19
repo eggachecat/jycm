@@ -51,7 +51,7 @@ def load_json(raw):
             raise ValueError(f"Not a valid json: `{raw}`")
 
 
-def run(left, right, rules, output, show):
+def run(left, right, rules, output, show, left_title='Left', right_title='Right'):
     left = load_json(left)
     right = load_json(right)
     rules = load_json(rules)
@@ -59,7 +59,8 @@ def run(left, right, rules, output, show):
     same, result = diff_two_json_with_rules(left, right, rules)
 
     if output is not None:
-        index_url = dump_html_output(left, right, result, output)
+        index_url = dump_html_output(
+            left, right, result, output, left_title=left_title, right_title=right_title)
         if show:
             open_url(index_url)
 
@@ -108,12 +109,14 @@ def load_file(file_path):
               help='Left Json file path, if both left and this are given, jycm will use the file')
 @click.option('--right_file', default=None,
               help='Right Json file path, if both right and this are given, jycm will use the file')
+@click.option('--left_title', default='Left', help='Left Title')
+@click.option('--right_title', default='Right', help='Right Title')
 @click.option('--rules', default='[]', help='Rules')
 @click.option('--rules_file', default=None,
               help='Rules Json file path, if both Json and this are given, jycm will use the file')
 @click.option('--output', default=None, help='The folder where the results will be dumped.')
 @click.option('--show', is_flag=True, show_default=True, help='Whether or not open the browser to visualize result.')
-def main(interactive, left, right, left_file, right_file, rules, rules_file, output, show):
+def main(interactive, left, right, left_file, right_file, left_title, right_title, rules, rules_file, output, show):
     if left_file is not None:
         left = load_file(left_file)
 
@@ -129,7 +132,7 @@ def main(interactive, left, right, left_file, right_file, rules, rules_file, out
     if output is None:
         output = os.path.join(tempfile.mkdtemp(), f"jycm-{int(time.time())}")
 
-    return run(left, right, rules, output, show)
+    return run(left, right, rules, output, show, left_title=left_title, right_title=right_title)
 
 
 if __name__ == '__main__':
