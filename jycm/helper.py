@@ -52,7 +52,7 @@ HTML_TEMPLATE = """
 """.strip()
 
 
-def render_to_html(left, right, diff_result, main_script_path="./index.js", left_title='Left', right_title='Right'):
+def render_to_html(left, right, diff_result, main_script_path, left_title='Left', right_title='Right'):
     return HTML_TEMPLATE.replace(
         "__MAIN_SCRIPT_PATH__", f"{main_script_path}"
     ).replace(
@@ -68,7 +68,7 @@ def render_to_html(left, right, diff_result, main_script_path="./index.js", left
 
 
 def dump_html_output(left, right, diff_result, output, left_title='Left', right_title='Right'):
-    html = render_to_html(left, right, diff_result, left_title=left_title, right_title=right_title)
+    html = render_to_html(left, right, diff_result, main_script_path=os.path.join(os.getcwd(),f"{output}/index.js"),left_title=left_title, right_title=right_title)
 
     shutil.copytree(os.path.join(os.path.dirname(os.path.realpath(__file__)), "jycm_viewer_assets/"), output)
     index_url = os.path.join(output, "index.html")
