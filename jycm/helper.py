@@ -52,7 +52,7 @@ HTML_TEMPLATE = """
 """.strip()
 
 
-def render_to_html(left, right, diff_result, main_script_path="./index.js", left_title='Left', right_title='Right'):
+def render_to_html(left, right, diff_result, main_script_path="json_output/index.js", left_title='Left', right_title='Right'):
     return HTML_TEMPLATE.replace(
         "__MAIN_SCRIPT_PATH__", f"{main_script_path}"
     ).replace(
@@ -75,17 +75,3 @@ def dump_html_output(left, right, diff_result, output, left_title='Left', right_
     with open(index_url, "w") as fp:
         fp.write(html)
     return index_url
-
-
-def open_url(index_url):  # pragma: no cover
-    try:
-        import webbrowser
-        from sys import platform
-        if platform == "linux" or platform == "linux2":
-            webbrowser.open(f"file://{index_url}")
-        elif platform == "darwin":
-            webbrowser.open(f"file://{index_url}")
-        elif platform == "win32":
-            webbrowser.open(f"{index_url}")
-    except Exception as e:
-        print("You have to install webbrowser to open the html.\nRun pip install webbrowser")
