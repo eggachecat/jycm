@@ -75,3 +75,17 @@ def dump_html_output(left, right, diff_result, output, left_title='Left', right_
     with open(index_url, "w") as fp:
         fp.write(html)
     return index_url
+
+
+def open_url(index_url):  # pragma: no cover
+    try:
+        import webbrowser
+        from sys import platform
+        if platform == "linux" or platform == "linux2":
+            webbrowser.open(f"file://{index_url}")
+        elif platform == "darwin":
+            webbrowser.open(f"file://{index_url}")
+        elif platform == "win32":
+            webbrowser.open(f"{index_url}")
+    except Exception as e:
+        print("You have to install webbrowser to open the html.\nRun pip install webbrowser")
