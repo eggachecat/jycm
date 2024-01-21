@@ -8,6 +8,9 @@ A flexible json diff framework for minimalist.
 
 JYCM = Json You-Cha-Ma (「is there a difference」in Chinese)
 
+Also see a [**Javascript Implementation**](https://github.com/eggachecat/jycm-js)
+
+
 # Reference
 - [deepdiff](https://github.com/seperman/deepdiff)
     - how results are reported in JYCM is learnt from this amazing framework.
