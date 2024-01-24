@@ -12,7 +12,7 @@ Also see a [**Javascript Implementation**](https://github.com/eggachecat/jycm-js
 
 # Live DEMO
 
-See [https://eggachecat.github.io/jycm-viewer](https://eggachecat.github.io/jycm-viewer) for a live demo.
+See [https://eggachecat.github.io/jycm-json-diff-viewer](https://eggachecat.github.io/jycm-json-diff-viewer) for a live demo.
 
 
 # Reference
