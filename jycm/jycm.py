@@ -213,6 +213,16 @@ class YouchamaJsonDiffer:
         self.ignore_order_func: Callable[[TreeLevel, bool], bool] = ignore_order_func
 
         self.event_pair_dict: Dict[str, bool] = {}
+        self.business_policy = None
+
+    @classmethod
+    def from_policy(cls, left, right, policy, **differ_options):
+        """Create a differ from a serializable :class:`BusinessDiffPolicy`."""
+        from jycm.policy import BusinessDiffPolicy
+
+        if not isinstance(policy, BusinessDiffPolicy):
+            policy = BusinessDiffPolicy(policy)
+        return policy.build(left, right, **differ_options)
 
     def report_pair(self, level: TreeLevel):
         """Report pair of json path
@@ -619,9 +629,10 @@ class YouchamaJsonDiffer:
     def _compare_list_without_order_post(self, pair_list: List[ListItemPair], level: TreeLevel):
         matched_left_index = []
         matched_right_index = []
+        score = 0
         for pair in pair_list:
             # still can be different under not drill
-            self.diff_level(pair.level, False)
+            score += self.diff_level(pair.level, False)
             self.report_pair(pair.level)
             matched_left_index.append(pair.left_index)
             matched_right_index.append(pair.right_index)
@@ -644,8 +655,10 @@ class YouchamaJsonDiffer:
 
         for tl in delta:
             # 这样子取报告
-            self.diff_level(tl, False)
+            score += self.diff_level(tl, False)
             self.report_pair(tl)
+
+        return score
 
     def compare_list_without_order(self, level: TreeLevel, drill=False) -> float:
 
@@ -669,13 +682,16 @@ class YouchamaJsonDiffer:
                     matched_left[li] = True
                     break
 
+        resolved_score = len(pair_list)
         if not drill:
             # only in the report phase
-            self._compare_list_without_order_post(pair_list, level)
+            resolved_score = self._compare_list_without_order_post(
+                pair_list, level
+            )
 
         if max([len(level.left), len(level.right)]) == 0:
             return 1
-        return len(pair_list) / max([len(level.left), len(level.right)])
+        return resolved_score / max([len(level.left), len(level.right)])
 
     def compare_list(self, level: TreeLevel, drill=False) -> float:
         if self.ignore_order_func(level, drill):
@@ -917,6 +933,72 @@ class YouchamaJsonDiffer:
         self.diff()
         return self.to_dict(no_pairs)
 
+    def explain(self, include_diff=True):
+        """Return an executive summary plus the structured diff.
+
+        The summary separates structural/value changes from business-rule
+        evaluations and violations, making results suitable for CI messages,
+        audit logs, dashboards, and AI agents without parsing event details.
+        """
+        equal = self.diff()
+        diff_result = self.to_dict()
+        standard_events = {
+            EVENT_DICT_ADD,
+            EVENT_DICT_REMOVE,
+            EVENT_LIST_ADD,
+            EVENT_LIST_REMOVE,
+            EVENT_VALUE_CHANGE,
+        }
+        event_counts = {
+            event: len(records)
+            for event, records in diff_result.items()
+            if event != EVENT_PAIR and records
+        }
+        rule_events = {
+            event: count
+            for event, count in event_counts.items()
+            if event not in standard_events
+        }
+        violations = []
+        for event in rule_events:
+            for record in diff_result[event]:
+                if record.get("pass") is False:
+                    violations.append({"event": event, **record})
+
+        affected_paths = set()
+        for event in standard_events:
+            for record in diff_result.get(event, []):
+                path = record.get("right_path") or record.get("left_path")
+                if path:
+                    affected_paths.add(path)
+        for record in violations:
+            path = record.get("right_path") or record.get("left_path")
+            if path:
+                affected_paths.add(path)
+
+        summary = {
+            "equal": equal,
+            "change_count": sum(
+                len(diff_result.get(event, [])) for event in standard_events
+            ),
+            "rule_evaluation_count": sum(rule_events.values()),
+            "rule_violation_count": len(violations),
+            "matched_pair_count": len(diff_result.get(EVENT_PAIR, [])),
+            "affected_paths": sorted(affected_paths),
+            "events": event_counts,
+        }
+        if self.business_policy is not None:
+            summary["policy"] = self.business_policy
+
+        explanation = {
+            "equal": equal,
+            "summary": summary,
+            "violations": violations,
+        }
+        if include_diff:
+            explanation["diff"] = diff_result
+        return explanation
+
     def to_json_patch(self, include_tests=False):
         """Return an RFC 6902 JSON Patch from ``left`` to ``right``.
 
@@ -966,7 +1048,14 @@ class YouchamaJsonDiffer:
             # matching algorithm says so; otherwise positional patching still
             # guarantees a deterministic transformation.
             if isinstance(left, list) and self.ignore_order_func(level, False):
-                return self.diff_level(level, drill=True) == 1
+                isolated = YouchamaJsonDiffer(
+                    left,
+                    right,
+                    custom_operators=self.custom_operators,
+                    ignore_order_func=self.ignore_order_func,
+                    use_cache=self.use_cache,
+                )
+                return isolated.diff_level(level, drill=False) == 1
 
             return False
 
