@@ -222,6 +222,47 @@ expected = {
 assert ycm.to_dict(no_pairs=True) == expected
 
 ```
+
+## Generate and apply JSON Patch
+
+JYCM can produce and apply standard [RFC 6902 JSON Patch](https://www.rfc-editor.org/rfc/rfc6902)
+operations. The generated patch follows the same business rules as the diff: ignored paths,
+order-insensitive arrays, and custom operators that consider a value equivalent are left untouched.
+
+```python
+from jycm import apply_json_patch
+from jycm.jycm import YouchamaJsonDiffer
+from jycm.operator import IgnoreOperator
+
+before = {
+    "order": {"status": "pending", "total": 100},
+    "generated_at": "2024-01-01T00:00:00Z",
+}
+after = {
+    "order": {"status": "paid", "total": 100},
+    "generated_at": "2024-01-02T00:00:00Z",
+}
+
+differ = YouchamaJsonDiffer(
+    before,
+    after,
+    custom_operators=[IgnoreOperator("^generated_at$")],
+)
+
+# `test` operations make stale writes fail instead of silently overwriting data.
+patch = differ.to_json_patch(include_tests=True)
+assert patch == [
+    {"op": "test", "path": "/order/status", "value": "pending"},
+    {"op": "replace", "path": "/order/status", "value": "paid"},
+]
+
+updated = apply_json_patch(before, patch)
+# Or: updated = differ.apply_patch()
+```
+
+`apply_json_patch` supports all RFC 6902 operations: `add`, `remove`, `replace`,
+`move`, `copy`, and `test`. It copies the input by default; pass `in_place=True`
+only when mutation is intentional.
 ### Graph
 ![default_behaviour](https://raw.githubusercontent.com/eggachecat/jycm/master/docs/source/images/examples/default_behaviour.png)
 
