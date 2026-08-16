@@ -3,7 +3,7 @@ import pytest
 from jycm.helper import make_ignore_order_func
 from jycm.jycm import YouchamaJsonDiffer
 from jycm.operator import IgnoreOperator, ListItemFieldMatchOperator
-from jycm.patch import JsonPatchTestFailed, apply_json_patch
+from jycm.patch import JsonPatchError, JsonPatchTestFailed, apply_json_patch
 
 
 def test_json_patch_round_trip_nested_values_and_lists():
@@ -75,6 +75,50 @@ def test_json_patch_test_operation_guards_stale_documents():
 
     with pytest.raises(JsonPatchTestFailed):
         apply_json_patch({"version": 9}, patch)
+
+
+@pytest.mark.parametrize("document, patch, message", [
+    ({}, [{"op": "add", "path": "invalid", "value": 1}], "JSON Pointer"),
+    ({"items": []}, [{"op": "add", "path": "/items/-", "value": 1}], None),
+    ({"items": []}, [{"op": "remove", "path": "/items/nope"}], "Invalid array"),
+    ({"items": []}, [{"op": "remove", "path": "/items/0"}], "out of bounds"),
+    ({}, [{"op": "test", "path": "/missing", "value": 1}], "does not exist"),
+    ({"value": 1}, [{"op": "test", "path": "/value/child", "value": 1}],
+     "Cannot traverse"),
+    ({}, [{"op": "add", "path": "/missing/child", "value": 1}], "Parent path"),
+    ({"value": 1}, [{"op": "add", "path": "/value/child", "value": 1}],
+     "not a container"),
+    ({}, [{"op": "remove", "path": ""}], "document root"),
+    ({}, [{"op": "remove", "path": "/missing"}], "does not exist"),
+    ({}, [None], "requires 'op' and 'path'"),
+    ({}, [{"op": "add", "path": "/x"}], "requires 'value'"),
+    ({"x": 1}, [{"op": "replace", "path": "/x"}], "requires 'value'"),
+    ({}, [{"op": "copy", "path": "/x"}], "requires 'from'"),
+    ({}, [{"op": "unknown", "path": ""}], "Unsupported patch operation"),
+])
+def test_json_patch_rejects_invalid_operations(document, patch, message):
+    if message is None:
+        assert apply_json_patch(document, patch) == {"items": [1]}
+        return
+    with pytest.raises(JsonPatchError, match=message):
+        apply_json_patch(document, patch)
+
+
+def test_json_patch_supports_root_replacement_and_in_place_updates():
+    original = {"value": 1}
+    result = apply_json_patch(
+        original,
+        [{"op": "replace", "path": "", "value": ["root"]}],
+    )
+    assert result == ["root"]
+    assert original == {"value": 1}
+
+    assert apply_json_patch(
+        original,
+        [{"op": "replace", "path": "/value", "value": 2}],
+        in_place=True,
+    ) is original
+    assert original == {"value": 2}
 
 
 def test_large_equal_list_does_not_use_recursive_lcs_backtracking():
