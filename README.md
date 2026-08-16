@@ -70,6 +70,29 @@ patch = differ.to_json_patch()  # uses the same business semantics
 violations, matched-pair totals, and the structured diff. Policies also accept
 the original `value` / `parameter` rule shape for backward compatibility.
 
+### Agent Skill for Codex and Claude
+
+This repository includes the portable `jycm-business-diff` Agent Skill. It
+teaches compatible coding agents to design Policy rules from business examples,
+validate fixtures, generate and verify Patch, integrate the React UI, and plan
+safe deployment.
+
+```bash
+# user-wide Codex installation
+python skills/jycm-business-diff/scripts/install_skill.py --client codex
+
+# user-wide Claude Code installation
+python skills/jycm-business-diff/scripts/install_skill.py --client claude
+
+# open Agent Skills project installation
+python skills/jycm-business-diff/scripts/install_skill.py --client agents --project .
+```
+
+The canonical skill follows the open Agent Skills `SKILL.md` format and includes
+policy/deployment references plus a deterministic validation and comparison
+workflow. Existing installs are never overwritten unless `--force` is passed;
+the installer creates a timestamped backup first.
+
 # Renderer
 Yes! JYCM has a [rendering tool](https://github.com/eggachecat/react-jycm-viewer) out of the box!
 
