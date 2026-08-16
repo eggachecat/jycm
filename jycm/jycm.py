@@ -213,6 +213,16 @@ class YouchamaJsonDiffer:
         self.ignore_order_func: Callable[[TreeLevel, bool], bool] = ignore_order_func
 
         self.event_pair_dict: Dict[str, bool] = {}
+        self.business_policy = None
+
+    @classmethod
+    def from_policy(cls, left, right, policy, **differ_options):
+        """Create a differ from a serializable :class:`BusinessDiffPolicy`."""
+        from jycm.policy import BusinessDiffPolicy
+
+        if not isinstance(policy, BusinessDiffPolicy):
+            policy = BusinessDiffPolicy(policy)
+        return policy.build(left, right, **differ_options)
 
     def report_pair(self, level: TreeLevel):
         """Report pair of json path
@@ -275,44 +285,34 @@ class YouchamaJsonDiffer:
         """Inner function to find the longest common subsequence of string `X[0…m-1]` and `Y[0…n-1]`
 
         """
-        # return an empty string if the end of either sequence is reached
-        if left_size == 0 or right_size == 0:
-            return []
+        # Backtrack iteratively. The former recursive implementation used one
+        # Python stack frame per matched/list item and failed around 1,000
+        # elements even though the LCS table had already been built.
+        pairs = []
+        while left_size > 0 and right_size > 0:
+            pair_level = TreeLevel(
+                left=level.left[left_size - 1],
+                right=level.right[right_size - 1],
+                left_path=[*level.left_path, left_size - 1],
+                right_path=[*level.right_path, right_size - 1],
+                up=level
+            )
 
-        # if the last character of `X` and `Y` matches
-        # if left[left_size - 1] == right[right_size - 1]:
-        if self.diff_level(TreeLevel(
-            left=level.left[left_size - 1],
-            right=level.right[right_size - 1],
-            left_path=[*level.left_path, left_size - 1],
-            right_path=[*level.right_path, right_size - 1],
-            up=level
-        ), drill=True) == 1:
-            # append current character (`X[m-1]` or `Y[n-1]`) to LCS of
-            # substring `X[0…m-2]` and `Y[0…n-2]`
-            return self._generate_lcs_pair_list(level, left_size - 1, right_size - 1, dp_table) + [
-                ListItemPair(value=TreeLevel(
-                    left=level.left[left_size - 1],
-                    right=level.right[right_size - 1],
-                    left_path=[*level.left_path, left_size - 1],
-                    right_path=[*level.right_path, right_size - 1],
-                    up=level
-                ), left_index=left_size - 1, right_index=right_size - 1)
-            ]
+            if self.diff_level(pair_level, drill=True) == 1:
+                pairs.append(ListItemPair(
+                    value=pair_level,
+                    left_index=left_size - 1,
+                    right_index=right_size - 1
+                ))
+                left_size -= 1
+                right_size -= 1
+            elif dp_table[left_size - 1][right_size] > dp_table[left_size][right_size - 1]:
+                left_size -= 1
+            else:
+                right_size -= 1
 
-        # otherwise, if the last character of `X` and `Y` are different
-
-        # if a top cell of the current cell has more value than the left
-        # cell, then drop the current character of string `X` and find LCS
-        # of substring `X[0…m-2]`, `Y[0…n-1]`
-
-        if dp_table[left_size - 1][right_size] > dp_table[left_size][right_size - 1]:
-            return self._generate_lcs_pair_list(level, left_size - 1, right_size, dp_table)
-        else:
-            # if a left cell of the current cell has more value than the top
-            # cell, then drop the current character of string `Y` and find LCS
-            # of substring `X[0…m-1]`, `Y[0…n-2]`
-            return self._generate_lcs_pair_list(level, left_size, right_size - 1, dp_table)
+        pairs.reverse()
+        return pairs
 
     def _build_up_lcs_table(self, level: TreeLevel, left_size, right_size, dp_table):
         """Inner function
@@ -629,9 +629,10 @@ class YouchamaJsonDiffer:
     def _compare_list_without_order_post(self, pair_list: List[ListItemPair], level: TreeLevel):
         matched_left_index = []
         matched_right_index = []
+        score = 0
         for pair in pair_list:
             # still can be different under not drill
-            self.diff_level(pair.level, False)
+            score += self.diff_level(pair.level, False)
             self.report_pair(pair.level)
             matched_left_index.append(pair.left_index)
             matched_right_index.append(pair.right_index)
@@ -654,8 +655,10 @@ class YouchamaJsonDiffer:
 
         for tl in delta:
             # 这样子取报告
-            self.diff_level(tl, False)
+            score += self.diff_level(tl, False)
             self.report_pair(tl)
+
+        return score
 
     def compare_list_without_order(self, level: TreeLevel, drill=False) -> float:
 
@@ -679,13 +682,16 @@ class YouchamaJsonDiffer:
                     matched_left[li] = True
                     break
 
+        resolved_score = len(pair_list)
         if not drill:
             # only in the report phase
-            self._compare_list_without_order_post(pair_list, level)
+            resolved_score = self._compare_list_without_order_post(
+                pair_list, level
+            )
 
         if max([len(level.left), len(level.right)]) == 0:
             return 1
-        return len(pair_list) / max([len(level.left), len(level.right)])
+        return resolved_score / max([len(level.left), len(level.right)])
 
     def compare_list(self, level: TreeLevel, drill=False) -> float:
         if self.ignore_order_func(level, drill):
@@ -926,3 +932,146 @@ class YouchamaJsonDiffer:
         """
         self.diff()
         return self.to_dict(no_pairs)
+
+    def explain(self, include_diff=True):
+        """Return an executive summary plus the structured diff.
+
+        The summary separates structural/value changes from business-rule
+        evaluations and violations, making results suitable for CI messages,
+        audit logs, dashboards, and AI agents without parsing event details.
+        """
+        equal = self.diff()
+        diff_result = self.to_dict()
+        standard_events = {
+            EVENT_DICT_ADD,
+            EVENT_DICT_REMOVE,
+            EVENT_LIST_ADD,
+            EVENT_LIST_REMOVE,
+            EVENT_VALUE_CHANGE,
+        }
+        event_counts = {
+            event: len(records)
+            for event, records in diff_result.items()
+            if event != EVENT_PAIR and records
+        }
+        rule_events = {
+            event: count
+            for event, count in event_counts.items()
+            if event not in standard_events
+        }
+        violations = []
+        for event in rule_events:
+            for record in diff_result[event]:
+                if record.get("pass") is False:
+                    violations.append({"event": event, **record})
+
+        affected_paths = set()
+        for event in standard_events:
+            for record in diff_result.get(event, []):
+                path = record.get("right_path") or record.get("left_path")
+                if path:
+                    affected_paths.add(path)
+        for record in violations:
+            path = record.get("right_path") or record.get("left_path")
+            if path:
+                affected_paths.add(path)
+
+        summary = {
+            "equal": equal,
+            "change_count": sum(
+                len(diff_result.get(event, [])) for event in standard_events
+            ),
+            "rule_evaluation_count": sum(rule_events.values()),
+            "rule_violation_count": len(violations),
+            "matched_pair_count": len(diff_result.get(EVENT_PAIR, [])),
+            "affected_paths": sorted(affected_paths),
+            "events": event_counts,
+        }
+        if self.business_policy is not None:
+            summary["policy"] = self.business_policy
+
+        explanation = {
+            "equal": equal,
+            "summary": summary,
+            "violations": violations,
+        }
+        if include_diff:
+            explanation["diff"] = diff_result
+        return explanation
+
+    def to_json_patch(self, include_tests=False):
+        """Return an RFC 6902 JSON Patch from ``left`` to ``right``.
+
+        JYCM's semantic comparison rules are respected. A path considered
+        equal by an ignore rule or custom operator is intentionally omitted
+        from the patch.
+
+        Args:
+            include_tests: add a ``test`` operation before destructive writes.
+        """
+        from jycm.patch import make_json_patch
+
+        class PatchContext:
+            """Delegate operator helpers while keeping patch generation read-only."""
+
+            def __init__(self, differ):
+                self.differ = differ
+
+            def report(self, event, level, info=None):
+                pass
+
+            def __getattr__(self, name):
+                return getattr(self.differ, name)
+
+        patch_context = PatchContext(self)
+
+        def equivalent(left, right, left_path, right_path):
+            level = TreeLevel(
+                left=left,
+                right=right,
+                left_path=left_path,
+                right_path=right_path,
+                up=None
+            )
+
+            # Operators may use drill mode only to identify list-item pairs.
+            # Evaluate their final (non-drill) decision so matching operators
+            # can continue into child fields while ignore/tolerance operators
+            # can intentionally suppress a patch.
+            for operator in self.custom_operators:
+                if operator.match(level):
+                    skip, score = operator.diff(level, patch_context, drill=False)
+                    if skip:
+                        return score == 1
+
+            # An order-insensitive list is equivalent only when JYCM's full
+            # matching algorithm says so; otherwise positional patching still
+            # guarantees a deterministic transformation.
+            if isinstance(left, list) and self.ignore_order_func(level, False):
+                isolated = YouchamaJsonDiffer(
+                    left,
+                    right,
+                    custom_operators=self.custom_operators,
+                    ignore_order_func=self.ignore_order_func,
+                    use_cache=self.use_cache,
+                )
+                return isolated.diff_level(level, drill=False) == 1
+
+            return False
+
+        return make_json_patch(
+            self.left,
+            self.right,
+            equivalent=equivalent,
+            include_tests=include_tests
+        )
+
+    def apply_patch(self, document=None, patch=None, in_place=False):
+        """Apply an RFC 6902 patch, defaulting to this comparison's patch."""
+        from jycm.patch import apply_json_patch
+
+        if document is None:
+            document = self.left
+        if patch is None:
+            patch = self.to_json_patch()
+        return apply_json_patch(document, patch, in_place=in_place)

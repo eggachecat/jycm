@@ -26,6 +26,73 @@ See [https://eggachecat.github.io/jycm-json-diff-viewer](https://eggachecat.gith
 # Install
 > pip install jycm
 
+## Business Diff Policy
+
+Define domain equality as versioned, serializable data and reuse the same policy
+in Python and JavaScript. Rules can ignore volatile fields, compare unordered
+collections, pair records by identity, normalize text, apply absolute or
+relative numeric tolerances, and assert expected values or changes.
+
+```python
+from jycm import BusinessDiffPolicy
+
+policy = BusinessDiffPolicy({
+    "version": 1,
+    "name": "order-contract",
+    "rules": [
+        {"name": "items-as-set", "path": "^items$", "operation": "unordered"},
+        {
+            "name": "match-sku",
+            "path": r"^items->\[\d+\]$",
+            "operation": "match_by",
+            "options": {"field": "sku"},
+        },
+        {
+            "name": "money-rounding",
+            "path": r"^items->\[\d+\]->price$",
+            "operation": "numeric_tolerance",
+            "options": {"absolute": 0.01, "relative": 0.001},
+        },
+        {"name": "trace-id", "path": "^trace_id$", "operation": "ignore"},
+    ],
+})
+
+explanation = policy.compare(before, after)
+print(explanation["equal"])
+print(explanation["summary"])
+print(explanation["violations"])
+
+differ = policy.build(before, after)
+patch = differ.to_json_patch()  # uses the same business semantics
+```
+
+`explain()` returns dashboard-ready counts, affected paths, named rule
+violations, matched-pair totals, and the structured diff. Policies also accept
+the original `value` / `parameter` rule shape for backward compatibility.
+
+### Agent Skill for Codex and Claude
+
+This repository includes the portable `jycm-business-diff` Agent Skill. It
+teaches compatible coding agents to design Policy rules from business examples,
+validate fixtures, generate and verify Patch, integrate the React UI, and plan
+safe deployment.
+
+```bash
+# user-wide Codex installation
+python skills/jycm-business-diff/scripts/install_skill.py --client codex
+
+# user-wide Claude Code installation
+python skills/jycm-business-diff/scripts/install_skill.py --client claude
+
+# open Agent Skills project installation
+python skills/jycm-business-diff/scripts/install_skill.py --client agents --project .
+```
+
+The canonical skill follows the open Agent Skills `SKILL.md` format and includes
+policy/deployment references plus a deterministic validation and comparison
+workflow. Existing installs are never overwritten unless `--force` is passed;
+the installer creates a timestamped backup first.
+
 # Renderer
 Yes! JYCM has a [rendering tool](https://github.com/eggachecat/react-jycm-viewer) out of the box!
 
@@ -222,6 +289,47 @@ expected = {
 assert ycm.to_dict(no_pairs=True) == expected
 
 ```
+
+## Generate and apply JSON Patch
+
+JYCM can produce and apply standard [RFC 6902 JSON Patch](https://www.rfc-editor.org/rfc/rfc6902)
+operations. The generated patch follows the same business rules as the diff: ignored paths,
+order-insensitive arrays, and custom operators that consider a value equivalent are left untouched.
+
+```python
+from jycm import apply_json_patch
+from jycm.jycm import YouchamaJsonDiffer
+from jycm.operator import IgnoreOperator
+
+before = {
+    "order": {"status": "pending", "total": 100},
+    "generated_at": "2024-01-01T00:00:00Z",
+}
+after = {
+    "order": {"status": "paid", "total": 100},
+    "generated_at": "2024-01-02T00:00:00Z",
+}
+
+differ = YouchamaJsonDiffer(
+    before,
+    after,
+    custom_operators=[IgnoreOperator("^generated_at$")],
+)
+
+# `test` operations make stale writes fail instead of silently overwriting data.
+patch = differ.to_json_patch(include_tests=True)
+assert patch == [
+    {"op": "test", "path": "/order/status", "value": "pending"},
+    {"op": "replace", "path": "/order/status", "value": "paid"},
+]
+
+updated = apply_json_patch(before, patch)
+# Or: updated = differ.apply_patch()
+```
+
+`apply_json_patch` supports all RFC 6902 operations: `add`, `remove`, `replace`,
+`move`, `copy`, and `test`. It copies the input by default; pass `in_place=True`
+only when mutation is intentional.
 ### Graph
 ![default_behaviour](https://raw.githubusercontent.com/eggachecat/jycm/master/docs/source/images/examples/default_behaviour.png)
 

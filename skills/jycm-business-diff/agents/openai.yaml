@@ -1,0 +1,4 @@
+interface:
+  display_name: "JYCM Business Diff"
+  short_description: "Design, validate, and deploy semantic JSON diffs"
+  default_prompt: "Use $jycm-business-diff to design and validate a portable business diff policy for this project."
