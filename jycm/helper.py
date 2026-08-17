@@ -68,7 +68,7 @@ def render_to_html(left, right, diff_result, main_script_path="./index.js", left
 
 
 def dump_html_output(left, right, diff_result, output, left_title='Left', right_title='Right'):
-    main_script_path = f"{output}/index.js"
+    # main script path default is relatve index.js
     html = render_to_html(
         left, right, diff_result,
         main_script_path=main_script_path, left_title=left_title, right_title=right_title
