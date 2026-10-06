@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 
 # 包元信息
 NAME = 'jycm'  # 实际包的名字
-DESCRIPTION = 'A highly flexible json diff framework for python.'  # 项目描述
+DESCRIPTION = 'JSON diff with business rules, identity matching, and semantic JSON Patch.'  # 项目描述
 URL = 'https://github.com/eggachecat/jycm'  # 项目仓库 URL
 EMAIL = 'sunao_0626@hotmail.com'  # 维护者邮箱地址
 AUTHOR = 'eggachecat'  # 维护者姓名
@@ -61,7 +61,14 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
     ],
-    keywords='json diff jsondiff operator flexible',
+    keywords='json diff jsondiff semantic json-patch unordered comparison business-rules',
+    project_urls={
+        'Documentation': 'https://jycm.readthedocs.io/en/latest/',
+        'Playground': 'https://eggachecat.github.io/jycm-json-diff-viewer/',
+        'JavaScript': 'https://github.com/eggachecat/jycm-js',
+        'React viewer': 'https://github.com/eggachecat/react-jycm-viewer',
+        'Issues': 'https://github.com/eggachecat/jycm/issues',
+    },
     packages=find_packages(exclude=['docs', 'tests']),
     install_requires=REQUIRES,
     tests_require=[

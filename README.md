@@ -1,14 +1,68 @@
-# JYCM
+# JYCM — JSON Diff for Python with Business Rules
 
 ![Build Status](https://github.com/eggachecat/jycm/actions/workflows/on-push.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/jycm.svg)](https://badge.fury.io/py/jycm)
 [![Coverage Status](https://coveralls.io/repos/github/eggachecat/jycm/badge.svg?branch=master&kill_cache=1)](https://coveralls.io/github/eggachecat/jycm?branch=master)
 
-A flexible json diff framework for minimalist.
+Compare nested JSON by business meaning: ignore generated fields, compare
+unordered arrays, match records by identity, and define numeric tolerances or
+custom comparison operators. Inspect structured explanations, generate semantic
+JSON Patch, and visualize changes with the JYCM tool family.
+
+Use JYCM for API regression tests, configuration review, and data reconciliation
+when a raw text diff reports changes that do not matter to your application.
 
 JYCM = Json You-Cha-Ma (「is there a difference」in Chinese)
 
-Also see a [**Javascript Implementation**](https://github.com/eggachecat/jycm-js)
+## Choose a JYCM project
+
+JYCM is a family of tools for comparing JSON with explicit business rules.
+
+| Project | Use it for |
+| --- | --- |
+| [jycm](https://github.com/eggachecat/jycm) | Python comparisons, CLI reports, and business policies |
+| [jycm-js](https://github.com/eggachecat/jycm-js) | JavaScript / TypeScript comparisons in Node.js and browsers; npm package `jycm` |
+| [react-jycm-viewer](https://github.com/eggachecat/react-jycm-viewer) | Embedding a visual JSON diff or JSON Patch viewer in React |
+| [jycm-json-diff-viewer](https://github.com/eggachecat/jycm-json-diff-viewer) | Trying comparisons in the online playground and studying an integration example |
+
+[Try the playground](https://eggachecat.github.io/jycm-json-diff-viewer/) ·
+[Task guides](https://github.com/eggachecat/jycm/tree/master/docs/source/guides) ·
+[Algorithm paper](https://arxiv.org/abs/2305.05865)
+
+## Quick start: ignore JSON array order
+
+```python
+from jycm import BusinessDiffPolicy
+
+before = {"tags": ["red", "blue"], "status": "pending"}
+after = {"tags": ["blue", "red"], "status": "paid"}
+policy = BusinessDiffPolicy({
+    "version": 1,
+    "rules": [{"path": "^tags$", "operation": "unordered"}],
+})
+result = policy.compare(before, after)
+assert result["equal"] is False  # the status changed
+assert policy.build(before, after).to_json_patch() == [
+    {"op": "replace", "path": "/status", "value": "paid"},
+]
+```
+
+Array reordering is ignored only at `tags`. Other changes remain visible.
+See [installation](https://jycm.readthedocs.io/en/latest/installation.html)
+and the version note below before running source-branch examples.
+
+## Source and package versions
+
+This README describes the repository's default branch. Package registries and
+the deployed playground may contain earlier releases. Before integrating
+Business Diff Policy or JSON Patch APIs, confirm that your installed version
+exports the APIs used here. For development against this source, follow the
+repository's development instructions. Pin the tested package version in your
+application; a policy `version: 1` identifies the policy format, not a package
+version or a guarantee of identical behavior across every Python/JavaScript
+input. Validate your own fixtures in both runtimes.
+
+
 
 # Live DEMO
 
@@ -35,6 +89,9 @@ relative numeric tolerances, and assert expected values or changes.
 
 ```python
 from jycm import BusinessDiffPolicy
+
+before = {"items": [{"sku": "A", "price": 10}], "trace_id": "old"}
+after = {"items": [{"sku": "A", "price": 10.005}], "trace_id": "new"}
 
 policy = BusinessDiffPolicy({
     "version": 1,
