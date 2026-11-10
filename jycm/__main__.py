@@ -144,7 +144,10 @@ def main(interactive, left, right, left_file, right_file, left_title, right_titl
     if right_title is None:
         right_title = 'Right'
 
-    return run(left, right, rules, output, show, left_title=left_title, right_title=right_title)
+    try:
+        return run(left, right, rules, output, show, left_title=left_title, right_title=right_title)
+    except ValueError as exc:
+        raise click.ClickException(str(exc))
 
 
 if __name__ == '__main__':
